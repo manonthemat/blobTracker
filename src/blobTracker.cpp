@@ -14,8 +14,8 @@ void blobTracker::setup(){
     grayBg.allocate(kinect.width, kinect.height);
     grayDiff.allocate(kinect.width, kinect.height);
 
-    nearThreshold = 230;
-    farThreshold = 70;
+    nearThreshold = 250;
+    farThreshold = 240;
     ofSetFrameRate(60);
 }
 
