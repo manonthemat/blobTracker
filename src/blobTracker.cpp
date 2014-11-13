@@ -14,7 +14,7 @@ void blobTracker::setup(){
     grayBg.allocate(kinect.width, kinect.height);
     grayDiff.allocate(kinect.width, kinect.height);
 
-    nearThreshold = 250;
+    nearThreshold = 260;
     farThreshold = 240;
     ofSetFrameRate(60);
 }
@@ -43,7 +43,8 @@ void blobTracker::update(){
         }
         grayDiff.absDiff(grayBg, grayImage);
         grayDiff.threshold(50);
-    
+
+        cvFinder2.findContours(grayDiff, 10, (kinect.width*kinect.height)/3, 10, true);
     }
 
 }
@@ -54,10 +55,12 @@ void blobTracker::draw(){
     farImage.draw(kinect.width/3, 0, kinect.width/3, kinect.height/3);
     depthImage.draw(0, kinect.height/3, kinect.width/3, kinect.height/3);
     colorImage.draw(kinect.width/3, kinect.height/3, kinect.width/3, kinect.height/3);
+    contourFinder.draw(0, kinect.height/3, kinect.width/3, kinect.height/3);
 
     grayImage.draw(0, kinect.height, kinect.width/3, kinect.height/3);
     grayBg.draw(kinect.width/3, kinect.height, kinect.width/3, kinect.height/3);
     grayDiff.draw(kinect.width/3*2, kinect.height, kinect.width/3, kinect.height/3);
+    cvFinder2.draw(kinect.width/3*2, kinect.height, kinect.width/3, kinect.height/3);
 }
 
 //--------------------------------------------------------------

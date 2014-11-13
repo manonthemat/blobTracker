@@ -19,7 +19,7 @@ class blobTracker : public ofBaseApp{
         ofxCvGrayscaleImage grayBg, grayDiff;
         ofxCvGrayscaleImage nearImage, farImage; // the near and far thresholded images
         int nearThreshold, farThreshold;
-        ofxCvContourFinder contourFinder;
+        ofxCvContourFinder contourFinder, cvFinder2;
         bool bLearnBackground;
 
         ofxCvGrayscaleImage grayImage;
