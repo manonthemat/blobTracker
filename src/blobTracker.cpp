@@ -53,14 +53,20 @@ void blobTracker::update(){
 void blobTracker::draw(){
     nearImage.draw(0, 0, kinect.width/3, kinect.height/3);
     farImage.draw(kinect.width/3, 0, kinect.width/3, kinect.height/3);
-    depthImage.draw(0, kinect.height/3, kinect.width/3, kinect.height/3);
-    colorImage.draw(kinect.width/3, kinect.height/3, kinect.width/3, kinect.height/3);
-    contourFinder.draw(0, kinect.height/3, kinect.width/3, kinect.height/3);
+    depthImage.draw(kinect.width/3*2, 0, kinect.width/3, kinect.height/3);
+    colorImage.draw(kinect.width, 0, kinect.width/3, kinect.height/3);
+    contourFinder.draw(kinect.width, 0, kinect.width/3, kinect.height/3);
 
-    grayImage.draw(0, kinect.height, kinect.width/3, kinect.height/3);
-    grayBg.draw(kinect.width/3, kinect.height, kinect.width/3, kinect.height/3);
-    grayDiff.draw(kinect.width/3*2, kinect.height, kinect.width/3, kinect.height/3);
-    cvFinder2.draw(kinect.width/3*2, kinect.height, kinect.width/3, kinect.height/3);
+    grayImage.draw(0, kinect.height/3, kinect.width/3, kinect.height/3);
+    grayBg.draw(kinect.width/3, kinect.height/3, kinect.width/3, kinect.height/3);
+    grayDiff.draw(kinect.width/3*2, kinect.height/3, kinect.width/3, kinect.height/3);
+    cvFinder2.draw(kinect.width/3*2, kinect.height/3, kinect.width/3, kinect.height/3);
+
+    stringstream reportStr;
+    reportStr << "first contourFinder has " << contourFinder.nBlobs << " blobs" << endl
+              << "second contourFinder has " << cvFinder2.nBlobs << " blobs" << endl
+              << "fps is: " << ofGetFrameRate();
+    ofDrawBitmapString(reportStr.str(), 0, kinect.height/3*2+40);
 }
 
 //--------------------------------------------------------------
