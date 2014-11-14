@@ -15,11 +15,9 @@ class blobTracker : public ofBaseApp{
         ofxKinect kinect;
 
         ofxCvColorImage colorImage;
-        ofxCvGrayscaleImage dImg; // kinect grayscale depth image
-        ofxCvGrayscaleImage grayBg, grayDiff;
-        ofxCvContourFinder contourFinder, cvFinder2;
-        bool bLearnBackground, bBlackWhite;
-        ofxCvGrayscaleImage grayImage;
+        ofxCvGrayscaleImage depthImage; // kinect grayscale depth image
+        ofxCvContourFinder contourFinder;
+        bool bBlackWhite;
 
         int nearThreshold, farThreshold; // to be used for kinect's depth clipping
 
