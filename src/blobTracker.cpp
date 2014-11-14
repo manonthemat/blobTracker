@@ -2,7 +2,7 @@
 
 //--------------------------------------------------------------
 void blobTracker::setup(){
-    ofSetLogLevel(OF_LOG_VERBOSE); // cause I want to know what's going on
+    ofLogToFile("log.txt", true); // append to logfile log.txt
     kinect.setRegistration(true); // to enabe depth->video image calibration
     kinect.init(false, true, false);
     kinect.open();
@@ -108,41 +108,6 @@ void blobTracker::keyPressed(int key){
 }
 
 //--------------------------------------------------------------
-void blobTracker::keyReleased(int key){
-
-}
-
-//--------------------------------------------------------------
-void blobTracker::mouseMoved(int x, int y ){
-
-}
-
-//--------------------------------------------------------------
-void blobTracker::mouseDragged(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
 void blobTracker::mousePressed(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
-void blobTracker::mouseReleased(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
-void blobTracker::windowResized(int w, int h){
-
-}
-
-//--------------------------------------------------------------
-void blobTracker::gotMessage(ofMessage msg){
-
-}
-
-//--------------------------------------------------------------
-void blobTracker::dragEvent(ofDragInfo dragInfo){ 
 
 }
