@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxKinect.h"
 #include "ofxOpenCv.h"
+#include "blobObject.h"
 
 class blobTracker : public ofBaseApp{
 
@@ -22,7 +23,7 @@ class blobTracker : public ofBaseApp{
         int nearThreshold, farThreshold; // to be used for kinect's depth clipping
         int totalBlobCounter; // blob counter to keep track of blobs
 
-        // TODO: build a Ball structure incl. size, position, state (falling / rising)...
+        blobObject balls[4];
 
         void keyPressed(int key);
         void mousePressed(int x, int y, int button);

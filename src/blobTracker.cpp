@@ -44,7 +44,13 @@ void blobTracker::update(){
         for (int i = 0, n = contourFinder.nBlobs; i < n; i++) {
             ofxCvBlob blob = contourFinder.blobs.at(i);
             // TODO: implement blob tracking old/new here
-            ofLog() << "I found a blob with #" << i << endl;
+            ofLog() << "I found a blob with #" << i << endl
+                    << "at X: " <<blob.centroid.x << " Y: " << blob.centroid.y << endl
+                    << "with " << blob.nPts << " points" << endl;
+            balls[i].id = i;
+            balls[i].x = blob.centroid.x;
+            balls[i].y = blob.centroid.y;
+            balls[i].size = blob.nPts;
         }
     }
 
