@@ -39,7 +39,7 @@ void blobTracker::update(){
             }
         }
         dImg.flagImageChanged(); // mark the dImg as being changed
-        contourFinder.findContours(dImg, 10, (kinect.width * kinect.height)/3, 10, true); // find contours
+        contourFinder.findContours(dImg, 100, (kinect.width * kinect.height)/3, 10, false); // find contours
 
         grayImage = colorImage;
         if (bLearnBackground) {
@@ -47,7 +47,7 @@ void blobTracker::update(){
             bLearnBackground = false;
         }
         grayDiff.absDiff(grayBg, grayImage);
-        grayDiff.threshold(50);
+        grayDiff.threshold(80);
 
         cvFinder2.findContours(grayDiff, 10, (kinect.width*kinect.height)/3, 10, true);
     }
