@@ -7,15 +7,15 @@ void blobTracker::setup(){
     kinect.init(false, true, false);
     kinect.open();
 
+    nearThreshold = 500;
+    farThreshold = 600;
+    kinect.setDepthClipping(nearThreshold, farThreshold);
+
     colorImage.allocate(kinect.width, kinect.height);
-    depthImage.allocate(kinect.width, kinect.height);
-    nearImage.allocate(kinect.width, kinect.height);
-    farImage.allocate(kinect.width, kinect.height);
     grayBg.allocate(kinect.width, kinect.height);
     grayDiff.allocate(kinect.width, kinect.height);
+    dImg.allocate(kinect.width, kinect.height);
 
-    nearThreshold = 260;
-    farThreshold = 240;
     ofSetFrameRate(60);
 }
 
@@ -26,15 +26,9 @@ void blobTracker::update(){
     // will only be executed if the connection to the kinect is established and there's a new frame
     if(kinect.isFrameNew()) {
         colorImage.setFromPixels(kinect.getPixels(), kinect.width, kinect.height);
-        depthImage.setFromPixels(kinect.getDepthPixels(), kinect.width, kinect.height);
-        nearImage = depthImage;
-        farImage = depthImage;
-        nearImage.threshold(nearThreshold, true); // increases the contrast and inverts the image
-        farImage.threshold(farThreshold); // increases the contrast
-        // cvAnd gets the union of the two threshold images and puts them into depthImage
-        cvAnd(nearImage.getCvImage(), farImage.getCvImage(), depthImage.getCvImage(), NULL);
-        depthImage.flagImageChanged(); // mark the depthImage as being changed
-        contourFinder.findContours(depthImage, 10, (kinect.width * kinect.height)/3, 10, true); // find contours
+        dImg.setFromPixels(kinect.getDepthPixels(), kinect.width, kinect.height);
+        dImg.flagImageChanged(); // mark the dImg as being changed
+        contourFinder.findContours(dImg, 10, (kinect.width * kinect.height)/3, 10, true); // find contours
 
         grayImage = colorImage;
         if (bLearnBackground) {
@@ -51,11 +45,9 @@ void blobTracker::update(){
 
 //--------------------------------------------------------------
 void blobTracker::draw(){
-    nearImage.draw(0, 0, kinect.width/3, kinect.height/3);
-    farImage.draw(kinect.width/3, 0, kinect.width/3, kinect.height/3);
-    depthImage.draw(kinect.width/3*2, 0, kinect.width/3, kinect.height/3);
-    contourFinder.draw(kinect.width/3*2, 0, kinect.width/3, kinect.height/3);
-    colorImage.draw(kinect.width, 0, kinect.width/3, kinect.height/3);
+    dImg.draw(0, 0, kinect.width/3, kinect.height/3);
+    contourFinder.draw(0, 0, kinect.width/3, kinect.height/3);
+    colorImage.draw(kinect.width/3, 0, kinect.width/3, kinect.height/3);
 
     grayImage.draw(0, kinect.height/3, kinect.width/3, kinect.height/3);
     grayBg.draw(kinect.width/3, kinect.height/3, kinect.width/3, kinect.height/3);
@@ -65,6 +57,7 @@ void blobTracker::draw(){
     stringstream reportStr;
     reportStr << "first contourFinder has " << contourFinder.nBlobs << " blobs" << endl
               << "second contourFinder has " << cvFinder2.nBlobs << " blobs" << endl
+              << "clipping distance for kinect depth: " << nearThreshold << "/" << farThreshold << endl
               << "fps is: " << ofGetFrameRate();
     ofDrawBitmapString(reportStr.str(), 0, kinect.height/3*2+40);
 }
@@ -78,16 +71,20 @@ void blobTracker::exit() {
 void blobTracker::keyPressed(int key){
     switch (key) {
         case 'n':
-            if (nearThreshold > 0) nearThreshold--;
+            if (nearThreshold > 500 && nearThreshold < farThreshold) nearThreshold--;
+            kinect.setDepthClipping(nearThreshold, farThreshold);
             break;
         case 'N':
-            if (nearThreshold < 255) nearThreshold++;
+            if (nearThreshold < 4000 && nearThreshold < farThreshold-1) nearThreshold++;
+            kinect.setDepthClipping(nearThreshold, farThreshold);
             break;
         case 'f':
-            if (farThreshold > 0) farThreshold--;
+            if (farThreshold > 500 && farThreshold > nearThreshold+1) farThreshold--;
+            kinect.setDepthClipping(nearThreshold, farThreshold);
             break;
         case 'F':
-            if (farThreshold < 255) farThreshold++;
+            if (farThreshold < 4000 && farThreshold > nearThreshold) farThreshold++;
+            kinect.setDepthClipping(nearThreshold, farThreshold);
             break;
         case ' ':
             bLearnBackground = true;
