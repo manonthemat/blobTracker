@@ -8,7 +8,7 @@ void blobTracker::setup(){
     kinect.open();
 
     nearThreshold = 500;
-    farThreshold = 1200;
+    farThreshold = 1000;
     kinect.setDepthClipping(nearThreshold, farThreshold);
 
     colorImage.allocate(kinect.width, kinect.height);
@@ -51,7 +51,22 @@ void blobTracker::update(){
             balls[i].pos.set(blob.centroid.x, blob.centroid.y);
             float distance = balls[i].lastPos.distance(balls[i].pos);
             bool matches = balls[i].lastPos.match(balls[i].pos, 100);
-            if (matches != true) {
+            if (matches) {
+                if (balls[i].lastPos.x < balls[i].pos.x) {
+                    balls[i].direction_x = left_to_right;
+                    ofLog() << "left to right";
+                } else {
+                    balls[i].direction_x = right_to_left;
+                    ofLog() << "right to left";
+                }
+                if (balls[i].lastPos.y < balls[i].pos.y) {
+                    balls[i].direction_y = top_to_down;
+                    ofLog() << "top to down";
+                } else {
+                    balls[i].direction_y = down_to_top;
+                    ofLog() << "down to top";
+                }
+            } else {
                 ofLog() << "total blobs: " << ++totalBlobCounter;
             }
             ofLog() << "Distance: " << distance << endl << "Matches: " << matches << endl;
