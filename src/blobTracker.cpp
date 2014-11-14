@@ -54,8 +54,8 @@ void blobTracker::draw(){
     nearImage.draw(0, 0, kinect.width/3, kinect.height/3);
     farImage.draw(kinect.width/3, 0, kinect.width/3, kinect.height/3);
     depthImage.draw(kinect.width/3*2, 0, kinect.width/3, kinect.height/3);
+    contourFinder.draw(kinect.width/3*2, 0, kinect.width/3, kinect.height/3);
     colorImage.draw(kinect.width, 0, kinect.width/3, kinect.height/3);
-    contourFinder.draw(kinect.width, 0, kinect.width/3, kinect.height/3);
 
     grayImage.draw(0, kinect.height/3, kinect.width/3, kinect.height/3);
     grayBg.draw(kinect.width/3, kinect.height/3, kinect.width/3, kinect.height/3);
