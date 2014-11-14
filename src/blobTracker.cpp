@@ -4,7 +4,7 @@
 void blobTracker::setup(){
     ofLogToFile("log.txt", true); // append to logfile log.txt
     kinect.setRegistration(true); // to enabe depth->video image calibration
-    kinect.init(false, true, false);
+    kinect.init(false, true, false); // no infrared, yes to video, no to texture
     kinect.open();
 
     nearThreshold = 500;
@@ -15,6 +15,8 @@ void blobTracker::setup(){
     depthImage.allocate(kinect.width, kinect.height);
 
     ofSetFrameRate(60);
+
+    totalBlobCounter = 0;
 }
 
 //--------------------------------------------------------------
@@ -37,22 +39,29 @@ void blobTracker::update(){
             }
         }
         depthImage.flagImageChanged(); // mark the depthImage as being changed
-        contourFinder.findContours(depthImage, 100, (kinect.width * kinect.height)/3, 10, false); // find contours
+        contourFinder.findContours(depthImage, 100, (kinect.width * kinect.height), 10, false); // find contours
+
+        for (int i = 0, n = contourFinder.nBlobs; i < n; i++) {
+            ofxCvBlob blob = contourFinder.blobs.at(i);
+            // TODO: implement blob tracking old/new here
+            ofLog() << "I found a blob with #" << i << endl;
+        }
     }
 
 }
 
 //--------------------------------------------------------------
 void blobTracker::draw(){
-    depthImage.draw(0, 0, kinect.width/3, kinect.height/3);
-    contourFinder.draw(0, 0, kinect.width/3, kinect.height/3);
-    colorImage.draw(kinect.width/3, 0, kinect.width/3, kinect.height/3);
+    depthImage.draw(0, 0, kinect.width, kinect.height);
+    contourFinder.draw(0, 0, kinect.width, kinect.height);
+    colorImage.draw(kinect.width, 0, kinect.width, kinect.height);
+
 
     stringstream reportStr;
     reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
               << "clipping distance for kinect depth: " << nearThreshold << "/" << farThreshold << endl
               << "fps is: " << ofGetFrameRate();
-    ofDrawBitmapString(reportStr.str(), 0, kinect.height/3*2+40);
+    ofDrawBitmapString(reportStr.str(), 0, kinect.height+20);
 }
 
 //--------------------------------------------------------------
