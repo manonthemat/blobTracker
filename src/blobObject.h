@@ -3,7 +3,8 @@
 
 struct blobObject {
     int id;
-    float x, y;
+    ofVec2f lastPos;
+    ofVec2f pos;
     float size;
     bool falling;
 };

@@ -48,9 +48,11 @@ void blobTracker::update(){
                     << "at X: " <<blob.centroid.x << " Y: " << blob.centroid.y << endl
                     << "with " << blob.nPts << " points" << endl;
             balls[i].id = i;
-            balls[i].x = blob.centroid.x;
-            balls[i].y = blob.centroid.y;
+            balls[i].pos.set(blob.centroid.x, blob.centroid.y);
+            float distance = balls[i].lastPos.distance(balls[i].pos);
+            ofLog() << "Distance: " << distance << endl;
             balls[i].size = blob.nPts;
+            balls[i].lastPos = balls[i].pos;
         }
     }
 
@@ -66,6 +68,7 @@ void blobTracker::draw(){
     stringstream reportStr;
     reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
               << "clipping distance for kinect depth: " << nearThreshold << "/" << farThreshold << endl
+              << "Balls #0 at" << balls[0].pos.x << endl
               << "fps is: " << ofGetFrameRate();
     ofDrawBitmapString(reportStr.str(), 0, kinect.height+20);
 }
