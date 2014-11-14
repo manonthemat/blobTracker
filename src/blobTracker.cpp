@@ -8,7 +8,7 @@ void blobTracker::setup(){
     kinect.open();
 
     nearThreshold = 500;
-    farThreshold = 600;
+    farThreshold = 800;
     kinect.setDepthClipping(nearThreshold, farThreshold);
 
     colorImage.allocate(kinect.width, kinect.height);
@@ -27,6 +27,17 @@ void blobTracker::update(){
     if(kinect.isFrameNew()) {
         colorImage.setFromPixels(kinect.getPixels(), kinect.width, kinect.height);
         dImg.setFromPixels(kinect.getDepthPixels(), kinect.width, kinect.height);
+        dImg.blur(3);
+
+        if (bBlackWhite) {
+            // turn shades of gray into white -> turn the kinect depth image into a black/white image
+            unsigned char* pixels = dImg.getPixels();
+            for (int i = 0, n = dImg.getHeight() * dImg.getWidth(); i < n; i++) {
+                if (pixels[i] != 0) {
+                    pixels[i] = 255;
+                }
+            }
+        }
         dImg.flagImageChanged(); // mark the dImg as being changed
         contourFinder.findContours(dImg, 10, (kinect.width * kinect.height)/3, 10, true); // find contours
 
@@ -89,7 +100,9 @@ void blobTracker::keyPressed(int key){
         case ' ':
             bLearnBackground = true;
             break;
-        
+        case 'b':
+            bBlackWhite = !bBlackWhite;
+            break;
     }
 
 }
