@@ -18,14 +18,18 @@ void blobTracker::setup(){
     ballImage[1].allocate(kinect.width, kinect.height);
     ballImage[2].allocate(kinect.width, kinect.height);
     ballImage[3].allocate(kinect.width, kinect.height);
+    outImage[0].allocate(kinect.width, kinect.height);
+    outImage[1].allocate(kinect.width, kinect.height);
+    outImage[2].allocate(kinect.width, kinect.height);
+    outImage[3].allocate(kinect.width, kinect.height);
 
     ofSetFrameRate(60);
 
     totalBlobCounter = 0;
     dest[0] = ofPoint(0, 0);
-    dest[1] = ofPoint(320, 0);
-    dest[2] = ofPoint(320, 240);
-    dest[3] = ofPoint(0, 240);
+    dest[1] = ofPoint(640, 0);
+    dest[2] = ofPoint(640, 480);
+    dest[3] = ofPoint(0, 480);
 }
 
 //--------------------------------------------------------------
@@ -88,7 +92,8 @@ void blobTracker::update(){
             src[1] = blob.boundingRect.getTopRight();
             src[2] = blob.boundingRect.getBottomRight();
             src[3] = blob.boundingRect.getBottomLeft();
-            ballImage[i].setFromPixels(colorImage.getPixelsRef());
+//            ballImage[i].setFromPixels(colorImage.getPixelsRef());
+            ballImage[i].setFromPixels(colorImage.getPixels(), colorImage.getWidth(), colorImage.getHeight());
             unsigned char* ballPixels = ballImage[i].getPixels();
             unsigned char* depthPixels = depthImage.getPixels();
             for (int j = 0, w = depthImage.getWidth(), h = depthImage.getHeight(); j < w * h; j++) {
@@ -100,7 +105,8 @@ void blobTracker::update(){
             }
             //ballImage[i].setFromPixels(ballPixels, 320, 240);
             ballImage[i].setFromPixels(ballPixels, ballImage[i].getWidth(), ballImage[i].getHeight());
-            //ballImage[i].warpIntoMe(ballImage[i], src, dest);
+            outImage[i].warpIntoMe(ballImage[i], src, dest);
+
         }
     }
 }
@@ -110,10 +116,10 @@ void blobTracker::draw(){
     depthImage.draw(0, 0, kinect.width, kinect.height);
     contourFinder.draw(0, 0, kinect.width, kinect.height);
     colorImage.draw(kinect.width, 0, kinect.width, kinect.height);
-    ballImage[0].draw(0, kinect.height, 320, 240);
-    ballImage[1].draw(320, kinect.height, 320, 240);
-    ballImage[2].draw(640, kinect.height, 320, 240);
-    ballImage[3].draw(960, kinect.height, 320, 240);
+    outImage[0].draw(0, kinect.height, 320, 240);
+    outImage[1].draw(320, kinect.height, 320, 240);
+    outImage[2].draw(640, kinect.height, 320, 240);
+    outImage[3].draw(960, kinect.height, 320, 240);
 
     stringstream reportStr;
     reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl

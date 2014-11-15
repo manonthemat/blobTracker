@@ -16,7 +16,8 @@ class blobTracker : public ofBaseApp{
         ofxKinect kinect;
 
         ofxCvColorImage colorImage;
-        ofxCvColorImage ballImage[4]; // TODO: cleanup... ballImage is for testing only
+        ofxCvColorImage ballImage[4];
+        ofxCvColorImage outImage[4];
 
         ofxCvGrayscaleImage depthImage; // kinect grayscale depth image
         ofxCvContourFinder contourFinder;
