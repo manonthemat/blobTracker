@@ -92,17 +92,14 @@ void blobTracker::update(){
             unsigned char* ballPixels = ballImage[i].getPixels();
             unsigned char* depthPixels = depthImage.getPixels();
             for (int j = 0, w = depthImage.getWidth(), h = depthImage.getHeight(); j < w * h; j++) {
-            //for (int j = 0, w = ballImage[i].getWidth(), h = ballImage[i].getHeight(); j < w * h; j++) {
                 if (depthPixels[j] == 0) {
-                    ballPixels[j] = 0;
-                    ballPixels[j+1] = 0;
-                    ballPixels[j+2] = 0;
-                }
-                else {
+                    ballPixels[j*3] = 0;
+                    ballPixels[j*3+1] = 0;
+                    ballPixels[j*3+2] = 0;
                 }
             }
-            ballImage[i].setFromPixels(ballPixels, 320, 240);
-            //ballImage[i].setFromPixels(ballPixels, ballImage[i].getWidth(), ballImage[i].getHeight());
+            //ballImage[i].setFromPixels(ballPixels, 320, 240);
+            ballImage[i].setFromPixels(ballPixels, ballImage[i].getWidth(), ballImage[i].getHeight());
             //ballImage[i].warpIntoMe(ballImage[i], src, dest);
         }
     }
