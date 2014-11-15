@@ -89,8 +89,25 @@ void blobTracker::update(){
             src[2] = blob.boundingRect.getBottomRight();
             src[3] = blob.boundingRect.getBottomLeft();
             ballImage[i].setFromPixels(colorImage.getPixelsRef());
-            // TODO: cropping or blacking out part of the ballImage to color only the blobbed area
-            ballImage[i].warpIntoMe(colorImage, src, dest);
+            ofPixels ballPixels = ballImage[i].getPixelsRef();
+            unsigned char* depthPixels = depthImage.getPixels();
+//            for (int j = 0, w = depthImage.getWidth(), h = depthImage.getHeight(); j < w * h; j++) {
+            for (int j = 0, w = ballImage[i].getWidth(), h = ballImage[i].getHeight(); j < w * h; j++) {
+                if (depthImage.getPixels()[j] == 0) {
+                    int x = j % w;
+                    int y = j/h;
+                    int index = ballPixels.getPixelIndex(x, y);
+                    ballPixels[i] = 0;
+                    //ballPixels.setColor(x, y, ofColor::black);
+                    ballPixels.setColor(index, ofColor::black);
+                }
+                else {
+                    //ballPixels.setColor(j, ofColor::yellowGreen);
+                }
+            }
+            ballImage[i].setFromPixels(ballPixels);
+            //ballImage[i].setFromPixels(ballPixels, ballImage[i].getWidth(), ballImage[i].getHeight());
+            //ballImage[i].warpIntoMe(ballImage[i], src, dest);
         }
     }
 }
