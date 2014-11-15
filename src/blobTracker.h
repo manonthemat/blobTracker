@@ -16,6 +16,8 @@ class blobTracker : public ofBaseApp{
         ofxKinect kinect;
 
         ofxCvColorImage colorImage;
+        ofxCvColorImage ballImage[4]; // TODO: cleanup... ballImage is for testing only
+
         ofxCvGrayscaleImage depthImage; // kinect grayscale depth image
         ofxCvContourFinder contourFinder;
         bool bBlackWhite;
@@ -24,6 +26,7 @@ class blobTracker : public ofBaseApp{
         int totalBlobCounter; // blob counter to keep track of blobs
 
         blobObject balls[4];
+        ofPoint dest[4];
 
         void keyPressed(int key);
         void mousePressed(int x, int y, int button);

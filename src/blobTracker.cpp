@@ -14,9 +14,18 @@ void blobTracker::setup(){
     colorImage.allocate(kinect.width, kinect.height);
     depthImage.allocate(kinect.width, kinect.height);
 
+    ballImage[0].allocate(kinect.width, kinect.height);
+    ballImage[1].allocate(kinect.width, kinect.height);
+    ballImage[2].allocate(kinect.width, kinect.height);
+    ballImage[3].allocate(kinect.width, kinect.height);
+
     ofSetFrameRate(60);
 
     totalBlobCounter = 0;
+    dest[0] = ofPoint(0, 0);
+    dest[1] = ofPoint(320, 0);
+    dest[2] = ofPoint(320, 240);
+    dest[3] = ofPoint(0, 240);
 }
 
 //--------------------------------------------------------------
@@ -40,8 +49,9 @@ void blobTracker::update(){
         }
 
         depthImage.flagImageChanged(); // mark the depthImage as being changed
-        contourFinder.findContours(depthImage, 100, (kinect.width * kinect.height), 10, false); // find contours
+        contourFinder.findContours(depthImage, 100, (kinect.width * kinect.height), 4, false); // find contours
 
+        // blob manipulation
         for (int i = 0, n = contourFinder.nBlobs; i < n; i++) {
             ofxCvBlob blob = contourFinder.blobs.at(i);
             ofLog() << "I found a blob with #" << i << endl
@@ -72,6 +82,15 @@ void blobTracker::update(){
             ofLog() << "Distance: " << distance << endl << "Matches: " << matches << endl;
             balls[i].size = blob.nPts;
             balls[i].lastPos = balls[i].pos;
+
+            ofPoint src[4];
+            src[0] = blob.boundingRect.getTopLeft();
+            src[1] = blob.boundingRect.getTopRight();
+            src[2] = blob.boundingRect.getBottomRight();
+            src[3] = blob.boundingRect.getBottomLeft();
+            ballImage[i].setFromPixels(colorImage.getPixelsRef());
+            // TODO: cropping or blacking out part of the ballImage to color only the blobbed area
+            ballImage[i].warpIntoMe(colorImage, src, dest);
         }
     }
 }
@@ -81,6 +100,10 @@ void blobTracker::draw(){
     depthImage.draw(0, 0, kinect.width, kinect.height);
     contourFinder.draw(0, 0, kinect.width, kinect.height);
     colorImage.draw(kinect.width, 0, kinect.width, kinect.height);
+    ballImage[0].draw(0, kinect.height, 320, 240);
+    ballImage[1].draw(320, kinect.height, 320, 240);
+    ballImage[2].draw(640, kinect.height, 320, 240);
+    ballImage[3].draw(960, kinect.height, 320, 240);
 
     stringstream reportStr;
     reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
