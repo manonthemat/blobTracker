@@ -89,23 +89,19 @@ void blobTracker::update(){
             src[2] = blob.boundingRect.getBottomRight();
             src[3] = blob.boundingRect.getBottomLeft();
             ballImage[i].setFromPixels(colorImage.getPixelsRef());
-            ofPixels ballPixels = ballImage[i].getPixelsRef();
+            unsigned char* ballPixels = ballImage[i].getPixels();
             unsigned char* depthPixels = depthImage.getPixels();
-//            for (int j = 0, w = depthImage.getWidth(), h = depthImage.getHeight(); j < w * h; j++) {
-            for (int j = 0, w = ballImage[i].getWidth(), h = ballImage[i].getHeight(); j < w * h; j++) {
-                if (depthImage.getPixels()[j] == 0) {
-                    int x = j % w;
-                    int y = j/h;
-                    int index = ballPixels.getPixelIndex(x, y);
-                    ballPixels[i] = 0;
-                    //ballPixels.setColor(x, y, ofColor::black);
-                    ballPixels.setColor(index, ofColor::black);
+            for (int j = 0, w = depthImage.getWidth(), h = depthImage.getHeight(); j < w * h; j++) {
+            //for (int j = 0, w = ballImage[i].getWidth(), h = ballImage[i].getHeight(); j < w * h; j++) {
+                if (depthPixels[j] == 0) {
+                    ballPixels[j] = 0;
+                    ballPixels[j+1] = 0;
+                    ballPixels[j+2] = 0;
                 }
                 else {
-                    //ballPixels.setColor(j, ofColor::yellowGreen);
                 }
             }
-            ballImage[i].setFromPixels(ballPixels);
+            ballImage[i].setFromPixels(ballPixels, 320, 240);
             //ballImage[i].setFromPixels(ballPixels, ballImage[i].getWidth(), ballImage[i].getHeight());
             //ballImage[i].warpIntoMe(ballImage[i], src, dest);
         }
