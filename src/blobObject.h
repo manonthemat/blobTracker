@@ -13,7 +13,6 @@ struct blobObject {
     int id;
     ofVec2f lastPos;
     ofVec2f pos;
-    float size;
     Direction_X direction_x;
     Direction_Y direction_y;
 };

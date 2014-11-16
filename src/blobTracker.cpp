@@ -25,11 +25,56 @@ void blobTracker::setup(){
 
     ofSetFrameRate(60);
 
-    totalBlobCounter = 0;
+    //totalBlobCounter = 0;
     dest[0] = ofPoint(0, 0);
     dest[1] = ofPoint(640, 0);
     dest[2] = ofPoint(640, 480);
     dest[3] = ofPoint(0, 480);
+}
+
+//--------------------------------------------------------------
+void blobTracker::manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorImage* origImg, ofxCvGrayscaleImage* depthImg){
+    // we're expecting up to 4 blobs really (4 balls max)
+    for (int i = 0, n = contourFinder->nBlobs; i < n; i++) {
+        ofxCvBlob blob = contourFinder->blobs.at(i);
+        // balls is an array of 4
+        balls[i].id = i;
+        balls[i].pos.set(blob.centroid.x, blob.centroid.y);
+        bool matches = balls[i].lastPos.match(balls[i].pos, 100);
+        if (matches) {
+            if (balls[i].lastPos.x < balls[i].pos.x) {
+                balls[i].direction_x = left_to_right;
+            } else {
+                balls[i].direction_x = right_to_left;
+            }
+            if (balls[i].lastPos.y < balls[i].pos.y) {
+                balls[i].direction_y = top_to_down;
+            } else {
+                balls[i].direction_y = down_to_top;
+            }
+
+            // src should be declared in the header-file as: ofPoint src[4]
+            src[0] = blob.boundingRect.getTopLeft();
+            src[1] = blob.boundingRect.getTopRight();
+            src[2] = blob.boundingRect.getBottomRight();
+            src[3] = blob.boundingRect.getBottomLeft();
+            // ballImage is a ofxCvColorImage, which has been defined in the header and allocated in our setup function
+            ballImage[i].setFromPixels(origImg->getPixels(), origImg->getWidth(), origImg->getHeight());
+            unsigned char* ballPixels = ballImage[i].getPixels();
+            unsigned char* depthPixels = depthImg->getPixels();
+            for (int j = 0, w = depthImg->getWidth(), h = depthImg->getHeight(); j < w * h; j++) {
+                if (depthPixels[j] == 0) {
+                    ballPixels[j*3] = 0;
+                    ballPixels[j*3+1] = 0;
+                    ballPixels[j*3+2] = 0;
+                }
+            }
+            ballImage[i].setFromPixels(ballPixels, ballImage[i].getWidth(), ballImage[i].getHeight());
+            // outImage is a ofxCvColorImage, which has been defined in the header and allocated in our setup function
+            outImage[i].warpIntoMe(ballImage[i], src, dest);
+        }
+        balls[i].lastPos = balls[i].pos;
+    }
 }
 
 //--------------------------------------------------------------
@@ -55,59 +100,7 @@ void blobTracker::update(){
         depthImage.flagImageChanged(); // mark the depthImage as being changed
         contourFinder.findContours(depthImage, 100, (kinect.width * kinect.height), 4, false); // find contours
 
-        // blob manipulation
-        for (int i = 0, n = contourFinder.nBlobs; i < n; i++) {
-            ofxCvBlob blob = contourFinder.blobs.at(i);
-            ofLog() << "I found a blob with #" << i << endl
-                    << "at X: " << blob.centroid.x << " Y: " << blob.centroid.y << endl
-                    << "with " << blob.nPts << " points";
-            balls[i].id = i;
-            balls[i].pos.set(blob.centroid.x, blob.centroid.y);
-            float distance = balls[i].lastPos.distance(balls[i].pos);
-            bool matches = balls[i].lastPos.match(balls[i].pos, 100);
-            if (matches) {
-                if (balls[i].lastPos.x < balls[i].pos.x) {
-                    balls[i].direction_x = left_to_right;
-                    ofLog() << "left to right";
-                } else {
-                    balls[i].direction_x = right_to_left;
-                    ofLog() << "right to left";
-                }
-                if (balls[i].lastPos.y < balls[i].pos.y) {
-                    balls[i].direction_y = top_to_down;
-                    ofLog() << "top to down";
-                } else {
-                    balls[i].direction_y = down_to_top;
-                    ofLog() << "down to top";
-                }
-            } else {
-                ofLog() << "total blobs: " << ++totalBlobCounter;
-            }
-            ofLog() << "Distance: " << distance << endl << "Matches: " << matches << endl;
-            balls[i].size = blob.nPts;
-            balls[i].lastPos = balls[i].pos;
-
-            ofPoint src[4];
-            src[0] = blob.boundingRect.getTopLeft();
-            src[1] = blob.boundingRect.getTopRight();
-            src[2] = blob.boundingRect.getBottomRight();
-            src[3] = blob.boundingRect.getBottomLeft();
-//            ballImage[i].setFromPixels(colorImage.getPixelsRef());
-            ballImage[i].setFromPixels(colorImage.getPixels(), colorImage.getWidth(), colorImage.getHeight());
-            unsigned char* ballPixels = ballImage[i].getPixels();
-            unsigned char* depthPixels = depthImage.getPixels();
-            for (int j = 0, w = depthImage.getWidth(), h = depthImage.getHeight(); j < w * h; j++) {
-                if (depthPixels[j] == 0) {
-                    ballPixels[j*3] = 0;
-                    ballPixels[j*3+1] = 0;
-                    ballPixels[j*3+2] = 0;
-                }
-            }
-            //ballImage[i].setFromPixels(ballPixels, 320, 240);
-            ballImage[i].setFromPixels(ballPixels, ballImage[i].getWidth(), ballImage[i].getHeight());
-            outImage[i].warpIntoMe(ballImage[i], src, dest);
-
-        }
+        manipulateBlobs(&contourFinder, &colorImage, &depthImage); // calling the work-horse
     }
 }
 
@@ -116,6 +109,7 @@ void blobTracker::draw(){
     depthImage.draw(0, 0, kinect.width, kinect.height);
     contourFinder.draw(0, 0, kinect.width, kinect.height);
     colorImage.draw(kinect.width, 0, kinect.width, kinect.height);
+    // drawing our warped and modified colorimages containing the blobs
     outImage[0].draw(0, kinect.height, 320, 240);
     outImage[1].draw(320, kinect.height, 320, 240);
     outImage[2].draw(640, kinect.height, 320, 240);
@@ -124,8 +118,8 @@ void blobTracker::draw(){
     stringstream reportStr;
     reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
               << "clipping distance for kinect depth: " << nearThreshold << "/" << farThreshold << endl
-              << "fps is: " << ofGetFrameRate() << endl
-              << "total blobs: " << totalBlobCounter;
+              << "fps is: " << ofGetFrameRate() << endl;
+              //<< "total blobs: " << totalBlobCounter;
     ofDrawBitmapString(reportStr.str(), 0, kinect.height+20);
 }
 
