@@ -7,6 +7,9 @@ void blobTracker::setup(){
     kinect.init(false, true, false); // no infrared, yes to video, no to texture
     kinect.open();
 
+//    float t = getInitialDistance(&kinect);
+//    ofLog() << "distance at 0 0 is " << t;
+
     nearThreshold = 500;
     farThreshold = 1000;
     kinect.setDepthClipping(nearThreshold, farThreshold);
@@ -79,7 +82,6 @@ void blobTracker::manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorI
                 outImage[i].warpIntoMe(ballImage[i], src, dest);
                 balls[i].processed = true;
                 timer = ofGetUnixTime();
-                ofLog() << "timer is " << timer;
             }
         } else {
             balls[i].processed = false;
@@ -132,28 +134,26 @@ void blobTracker::exit() {
 void blobTracker::keyPressed(int key){
     switch (key) {
         case 'n':
-            if (nearThreshold > 500 && nearThreshold < farThreshold) nearThreshold--;
+            if (nearThreshold > 510 && nearThreshold < farThreshold) nearThreshold-=10;
             kinect.setDepthClipping(nearThreshold, farThreshold);
             break;
         case 'N':
-            if (nearThreshold < 4000 && nearThreshold < farThreshold-1) nearThreshold++;
+            if (nearThreshold < 3990 && nearThreshold < farThreshold-10) nearThreshold+=10;
             kinect.setDepthClipping(nearThreshold, farThreshold);
             break;
         case 'f':
-            if (farThreshold > 500 && farThreshold > nearThreshold+1) farThreshold--;
+            if (farThreshold > 510 && farThreshold > nearThreshold+10) farThreshold-=10;
             kinect.setDepthClipping(nearThreshold, farThreshold);
             break;
         case 'F':
-            if (farThreshold < 4000 && farThreshold > nearThreshold) farThreshold++;
+            if (farThreshold < 3990 && farThreshold > nearThreshold) farThreshold+=10;
             kinect.setDepthClipping(nearThreshold, farThreshold);
-            break;
-        case 'b':
-            bBlackWhite = !bBlackWhite;
             break;
     }
 }
 
 //--------------------------------------------------------------
-void blobTracker::mousePressed(int x, int y, int button){
-
+float blobTracker::getInitialDistance(ofxKinect* kinect) {
+    float min = kinect->getDistanceAt(0,0);
+    return min;
 }

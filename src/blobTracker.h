@@ -21,7 +21,6 @@ class blobTracker : public ofBaseApp{
 
         ofxCvGrayscaleImage depthImage; // kinect grayscale depth image
         ofxCvContourFinder contourFinder;
-        bool bBlackWhite;
 
         int nearThreshold, farThreshold; // to be used for kinect's depth clipping
         //int totalBlobCounter; // blob counter to keep track of blobs
@@ -33,7 +32,7 @@ class blobTracker : public ofBaseApp{
         unsigned int timer;
 
         void manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorImage* origImg, ofxCvGrayscaleImage* depthImg);
+        float getInitialDistance(ofxKinect* kinect);
 
         void keyPressed(int key);
-        void mousePressed(int x, int y, int button);
 };
