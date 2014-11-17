@@ -30,6 +30,8 @@ void blobTracker::setup(){
     dest[1] = ofPoint(640, 0);
     dest[2] = ofPoint(640, 480);
     dest[3] = ofPoint(0, 480);
+
+    timer = 0;
 }
 
 //--------------------------------------------------------------
@@ -42,36 +44,45 @@ void blobTracker::manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorI
         balls[i].pos.set(blob.centroid.x, blob.centroid.y);
         bool matches = balls[i].lastPos.match(balls[i].pos, 100);
         if (matches) {
-            if (balls[i].lastPos.x < balls[i].pos.x) {
-                balls[i].direction_x = left_to_right;
-            } else {
-                balls[i].direction_x = right_to_left;
-            }
-            if (balls[i].lastPos.y < balls[i].pos.y) {
-                balls[i].direction_y = top_to_down;
-            } else {
-                balls[i].direction_y = down_to_top;
-            }
-
-            // src should be declared in the header-file as: ofPoint src[4]
-            src[0] = blob.boundingRect.getTopLeft();
-            src[1] = blob.boundingRect.getTopRight();
-            src[2] = blob.boundingRect.getBottomRight();
-            src[3] = blob.boundingRect.getBottomLeft();
-            // ballImage is a ofxCvColorImage, which has been defined in the header and allocated in our setup function
-            ballImage[i].setFromPixels(origImg->getPixels(), origImg->getWidth(), origImg->getHeight());
-            unsigned char* ballPixels = ballImage[i].getPixels();
-            unsigned char* depthPixels = depthImg->getPixels();
-            for (int j = 0, w = depthImg->getWidth(), h = depthImg->getHeight(); j < w * h; j++) {
-                if (depthPixels[j] == 0) {
-                    ballPixels[j*3] = 0;
-                    ballPixels[j*3+1] = 0;
-                    ballPixels[j*3+2] = 0;
+            if (!balls[i].processed || (ofGetUnixTime() - timer) > 1) {
+                /*
+                if (balls[i].lastPos.x < balls[i].pos.x) {
+                    balls[i].direction_x = left_to_right;
+                } else {
+                    balls[i].direction_x = right_to_left;
                 }
+                if (balls[i].lastPos.y < balls[i].pos.y) {
+                    balls[i].direction_y = top_to_down;
+                } else {
+                    balls[i].direction_y = down_to_top;
+                }
+                */
+
+                // src should be declared in the header-file as: ofPoint src[4]
+                src[0] = blob.boundingRect.getTopLeft();
+                src[1] = blob.boundingRect.getTopRight();
+                src[2] = blob.boundingRect.getBottomRight();
+                src[3] = blob.boundingRect.getBottomLeft();
+                // ballImage is a ofxCvColorImage, which has been defined in the header and allocated in our setup function
+                ballImage[i].setFromPixels(origImg->getPixels(), origImg->getWidth(), origImg->getHeight());
+                unsigned char* ballPixels = ballImage[i].getPixels();
+                unsigned char* depthPixels = depthImg->getPixels();
+                for (int j = 0, w = depthImg->getWidth(), h = depthImg->getHeight(); j < w * h; j++) {
+                    if (depthPixels[j] == 0) {
+                        ballPixels[j*3] = 0;
+                        ballPixels[j*3+1] = 0;
+                        ballPixels[j*3+2] = 0;
+                    }
+                }
+                ballImage[i].setFromPixels(ballPixels, ballImage[i].getWidth(), ballImage[i].getHeight());
+                // outImage is a ofxCvColorImage, which has been defined in the header and allocated in our setup function
+                outImage[i].warpIntoMe(ballImage[i], src, dest);
+                balls[i].processed = true;
+                timer = ofGetUnixTime();
+                ofLog() << "timer is " << timer;
             }
-            ballImage[i].setFromPixels(ballPixels, ballImage[i].getWidth(), ballImage[i].getHeight());
-            // outImage is a ofxCvColorImage, which has been defined in the header and allocated in our setup function
-            outImage[i].warpIntoMe(ballImage[i], src, dest);
+        } else {
+            balls[i].processed = false;
         }
         balls[i].lastPos = balls[i].pos;
     }
@@ -87,18 +98,8 @@ void blobTracker::update(){
         depthImage.setFromPixels(kinect.getDepthPixels(), kinect.width, kinect.height);
         depthImage.blur(3);
 
-        if (bBlackWhite) {
-            // turn shades of gray into white -> turn the kinect depth image into a black/white image
-            unsigned char* pixels = depthImage.getPixels();
-            for (int i = 0, n = depthImage.getHeight() * depthImage.getWidth(); i < n; i++) {
-                if (pixels[i] != 0) {
-                    pixels[i] = 255;
-                }
-            }
-        }
-
         depthImage.flagImageChanged(); // mark the depthImage as being changed
-        contourFinder.findContours(depthImage, 100, (kinect.width * kinect.height), 4, false); // find contours
+        contourFinder.findContours(depthImage, 100, 50000, 4, false); // find contours
 
         manipulateBlobs(&contourFinder, &colorImage, &depthImage); // calling the work-horse
     }
@@ -106,14 +107,14 @@ void blobTracker::update(){
 
 //--------------------------------------------------------------
 void blobTracker::draw(){
-    depthImage.draw(0, 0, kinect.width, kinect.height);
-    contourFinder.draw(0, 0, kinect.width, kinect.height);
-    colorImage.draw(kinect.width, 0, kinect.width, kinect.height);
+    //depthImage.draw(0, 0, kinect.width, kinect.height);
+    //contourFinder.draw(0, 0, kinect.width, kinect.height);
+    //colorImage.draw(kinect.width, 0, kinect.width, kinect.height);
     // drawing our warped and modified colorimages containing the blobs
-    outImage[0].draw(0, kinect.height, 320, 240);
-    outImage[1].draw(320, kinect.height, 320, 240);
-    outImage[2].draw(640, kinect.height, 320, 240);
-    outImage[3].draw(960, kinect.height, 320, 240);
+    outImage[0].draw(0, kinect.height, outImage[0].width, outImage[0].height);
+    //outImage[1].draw(320, kinect.height, 320, 240);
+    //outImage[2].draw(640, kinect.height, 320, 240);
+    //outImage[3].draw(960, kinect.height, 320, 240);
 
     stringstream reportStr;
     reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl

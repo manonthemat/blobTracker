@@ -30,6 +30,8 @@ class blobTracker : public ofBaseApp{
         ofPoint dest[4];
         ofPoint src[4];
 
+        unsigned int timer;
+
         void manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorImage* origImg, ofxCvGrayscaleImage* depthImg);
 
         void keyPressed(int key);

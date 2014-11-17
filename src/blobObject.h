@@ -11,6 +11,7 @@ enum Direction_Y {
 
 struct blobObject {
     int id;
+    bool processed;
     ofVec2f lastPos;
     ofVec2f pos;
     Direction_X direction_x;
