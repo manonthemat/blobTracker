@@ -107,13 +107,12 @@ void blobTracker::update(){
 
 //--------------------------------------------------------------
 void blobTracker::draw(){
-    //depthImage.draw(0, 0, kinect.width, kinect.height);
-    //contourFinder.draw(0, 0, kinect.width, kinect.height);
-    //colorImage.draw(kinect.width, 0, kinect.width, kinect.height);
-    // drawing our warped and modified colorimages containing the blobs
-    outImage[0].draw(0, kinect.height, outImage[0].width, outImage[0].height);
-    //outImage[1].draw(320, kinect.height, 320, 240);
-    //outImage[2].draw(640, kinect.height, 320, 240);
+    outImage[0].draw(0, 0, outImage[0].width, outImage[0].height);
+    outImage[1].draw(outImage[0].width, 0, 320, 240);
+    outImage[2].draw(outImage[0].width + 320, 0, 320, 240);
+    colorImage.draw(0, outImage[0].height, 320, 240);
+    depthImage.draw(320, outImage[0].height, 320, 240);
+    contourFinder.draw(320, outImage[0].height, 320, 240);
     //outImage[3].draw(960, kinect.height, 320, 240);
 
     stringstream reportStr;
@@ -121,7 +120,7 @@ void blobTracker::draw(){
               << "clipping distance for kinect depth: " << nearThreshold << "/" << farThreshold << endl
               << "fps is: " << ofGetFrameRate() << endl;
               //<< "total blobs: " << totalBlobCounter;
-    ofDrawBitmapString(reportStr.str(), 0, kinect.height+20);
+    ofDrawBitmapString(reportStr.str(), 0, 700);
 }
 
 //--------------------------------------------------------------
