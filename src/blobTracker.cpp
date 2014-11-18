@@ -3,6 +3,7 @@
 //--------------------------------------------------------------
 void blobTracker::setup(){
     ofLogToFile("log.txt", true); // append to logfile log.txt
+    drawCams = false;
     kinect.setRegistration(true); // to enabe depth->video image calibration
     kinect.init(false, true, false); // no infrared, yes to video, no to texture
     kinect.open();
@@ -190,24 +191,24 @@ int blobTracker::getColorId(ofxCvColorImage* ballImage) {
 
 //--------------------------------------------------------------
 void blobTracker::draw(){
-    depthImage.draw(320, outImage[0].height, 320, 240);
-    /*
-    contourFinder.draw(320, outImage[0].height, 320, 240);
-    outImage[0].draw(0, 0, outImage[0].width, outImage[0].height);
-    outImage[1].draw(outImage[0].width, 0, 320, 240);
-    outImage[2].draw(outImage[0].width + 320, 0, 320, 240);
-    colorImage.draw(0, outImage[0].height, 320, 240);
-    depthImage.draw(320, outImage[0].height, 320, 240);
-    contourFinder.draw(320, outImage[0].height, 320, 240);
-    //outImage[3].draw(960, kinect.height, 320, 240);
+    if (drawCams) {
+        depthImage.draw(320, outImage[0].height, 320, 240);
+        contourFinder.draw(320, outImage[0].height, 320, 240);
+        outImage[0].draw(0, 0, outImage[0].width, outImage[0].height);
+        outImage[1].draw(outImage[0].width, 0, 320, 240);
+        outImage[2].draw(outImage[0].width + 320, 0, 320, 240);
+        colorImage.draw(0, outImage[0].height, 320, 240);
+        depthImage.draw(320, outImage[0].height, 320, 240);
+        contourFinder.draw(320, outImage[0].height, 320, 240);
+        //outImage[3].draw(960, kinect.height, 320, 240);
 
-    stringstream reportStr;
-    reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
-              << "clipping distance for kinect depth: " << nearThreshold << "/" << farThreshold << endl
-              << "fps is: " << ofGetFrameRate() << endl;
-              //<< "total blobs: " << totalBlobCounter;
-    ofDrawBitmapString(reportStr.str(), 0, 700);
-    */
+        stringstream reportStr;
+        reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
+                  << "clipping distance for kinect depth: " << nearThreshold << "/" << farThreshold << endl
+                  << "fps is: " << ofGetFrameRate() << endl;
+                  //<< "total blobs: " << totalBlobCounter;
+        ofDrawBitmapString(reportStr.str(), 0, 700);
+    }
 }
 
 //--------------------------------------------------------------
@@ -233,6 +234,9 @@ void blobTracker::keyPressed(int key){
         case 'F':
             if (farThreshold < 3990 && farThreshold > nearThreshold) farThreshold+=10;
             kinect.setDepthClipping(nearThreshold, farThreshold);
+            break;
+        case ' ':
+            drawCams = !drawCams;
             break;
     }
 }

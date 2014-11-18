@@ -28,6 +28,8 @@ class blobTracker : public ofBaseApp{
         int nearThreshold, farThreshold; // to be used for kinect's depth clipping
         //int totalBlobCounter; // blob counter to keep track of blobs
 
+        bool drawCams;
+
         blobObject balls[4];
         ofPoint dest[4];
         ofPoint src[4];
