@@ -82,8 +82,8 @@ void blobTracker::manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorI
                 outImage[i].warpIntoMe(ballImage[i], src, dest);
                 balls[i].processed = true;
                 timer = ofGetUnixTime();
-                ofColor c = getColor(&outImage[i]);
-                ofLog() << "color for ball " << i << " is " << c;
+                int c = getColorId(&outImage[i]);
+                ofLog() << "color id for ball " << i << " is " << c;
             }
         } else {
             balls[i].processed = false;
@@ -110,7 +110,7 @@ void blobTracker::update(){
 }
 
 //--------------------------------------------------------------
-ofColor blobTracker::getColor(ofxCvColorImage* ballImage) {
+int blobTracker::getColorId(ofxCvColorImage* ballImage) {
     ofPixels pixels = ballImage->getPixelsRef();
     unsigned int numPixels = 0;
     unsigned int r = 0.0;
@@ -128,10 +128,25 @@ ofColor blobTracker::getColor(ofxCvColorImage* ballImage) {
         }
     }
     if (numPixels > 0) {
-        ofColor color = ofColor((int)r/numPixels, (int)g/numPixels, (int)b/numPixels);
-        return color;
+        float hue = ofColor((int)r/numPixels, (int)g/numPixels, (int)b/numPixels).getHueAngle();
+
+        hue = (int) hue;
+
+        if (hue >= 330 || hue <= 29)
+            return 0; // red
+
+        else if (hue >= 30 && hue <= 75)
+            return 1; // yellow
+
+        else if (hue > 190 && hue <= 280)
+            return 2; // blue
+
+        else if (hue >= 76 && hue <= 170)
+            return 3; // green
+
+        return -1;
     } else {
-        return ofColor::black;
+        return -1;
     }
 }
 

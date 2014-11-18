@@ -33,7 +33,7 @@ class blobTracker : public ofBaseApp{
 
         void manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorImage* origImg, ofxCvGrayscaleImage* depthImg);
         float getInitialDistance(ofxKinect* kinect);
-        ofColor getColor(ofxCvColorImage* ballImage);
+        int getColorId(ofxCvColorImage* ballImage);
 
         void keyPressed(int key);
 };
