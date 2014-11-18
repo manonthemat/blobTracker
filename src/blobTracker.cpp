@@ -37,7 +37,7 @@ void blobTracker::setup(){
     timer = 0;
 
     // setting up the networking
-    sender.setup("localhost", 9998);
+    sender.setup("localhost", 9999);
     receiver.setup(7600);
 }
 
@@ -191,6 +191,7 @@ int blobTracker::getColorId(ofxCvColorImage* ballImage) {
 //--------------------------------------------------------------
 void blobTracker::draw(){
     depthImage.draw(320, outImage[0].height, 320, 240);
+    /*
     contourFinder.draw(320, outImage[0].height, 320, 240);
     outImage[0].draw(0, 0, outImage[0].width, outImage[0].height);
     outImage[1].draw(outImage[0].width, 0, 320, 240);
@@ -206,6 +207,7 @@ void blobTracker::draw(){
               << "fps is: " << ofGetFrameRate() << endl;
               //<< "total blobs: " << totalBlobCounter;
     ofDrawBitmapString(reportStr.str(), 0, 700);
+    */
 }
 
 //--------------------------------------------------------------
