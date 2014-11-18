@@ -82,6 +82,8 @@ void blobTracker::manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorI
                 outImage[i].warpIntoMe(ballImage[i], src, dest);
                 balls[i].processed = true;
                 timer = ofGetUnixTime();
+                ofColor c = getColor(&outImage[i]);
+                ofLog() << "color for ball " << i << " is " << c;
             }
         } else {
             balls[i].processed = false;
@@ -104,6 +106,32 @@ void blobTracker::update(){
         contourFinder.findContours(depthImage, 100, 50000, 4, false); // find contours
 
         manipulateBlobs(&contourFinder, &colorImage, &depthImage); // calling the work-horse
+    }
+}
+
+//--------------------------------------------------------------
+ofColor blobTracker::getColor(ofxCvColorImage* ballImage) {
+    ofPixels pixels = ballImage->getPixelsRef();
+    unsigned int numPixels = 0;
+    unsigned int r = 0.0;
+    unsigned int g = 0.0;
+    unsigned int b = 0.0;
+    for (unsigned int i = 0, n = pixels.size(); i < n; i+=3) {
+        if (pixels[i] == 0 && pixels[i+1] == 0 && pixels[i+2] == 0) {
+            // if the pixel is black (r,g,b all zero) -> continue
+            continue;
+        } else {
+            numPixels++;
+            r += pixels[i];
+            g += pixels[i+1];
+            b += pixels[i+2];
+        }
+    }
+    if (numPixels > 0) {
+        ofColor color = ofColor((int)r/numPixels, (int)g/numPixels, (int)b/numPixels);
+        return color;
+    } else {
+        return ofColor::black;
     }
 }
 
