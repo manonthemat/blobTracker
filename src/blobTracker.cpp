@@ -10,8 +10,8 @@ void blobTracker::setup(){
 //    float t = getInitialDistance(&kinect);
 //    ofLog() << "distance at 0 0 is " << t;
 
-    nearThreshold = 500;
-    farThreshold = 1000;
+    nearThreshold = 2000;
+    farThreshold = 2200;
     kinect.setDepthClipping(nearThreshold, farThreshold);
 
     colorImage.allocate(kinect.width, kinect.height);
@@ -131,10 +131,11 @@ int blobTracker::getColorId(ofxCvColorImage* ballImage) {
         float hue = ofColor((int)r/numPixels, (int)g/numPixels, (int)b/numPixels).getHueAngle();
 
         hue = (int) hue;
+        ofLog() << "hue: " << hue;
 
         if (hue >= 330 || hue <= 29)
             return 0; // red
-
+/*
         else if (hue >= 30 && hue <= 75)
             return 1; // yellow
 
@@ -145,6 +146,9 @@ int blobTracker::getColorId(ofxCvColorImage* ballImage) {
             return 3; // green
 
         return -1;
+ */
+        else
+            return 3;
     } else {
         return -1;
     }
@@ -152,6 +156,9 @@ int blobTracker::getColorId(ofxCvColorImage* ballImage) {
 
 //--------------------------------------------------------------
 void blobTracker::draw(){
+    depthImage.draw(320, outImage[0].height, 320, 240);
+    contourFinder.draw(320, outImage[0].height, 320, 240);
+    /*
     outImage[0].draw(0, 0, outImage[0].width, outImage[0].height);
     outImage[1].draw(outImage[0].width, 0, 320, 240);
     outImage[2].draw(outImage[0].width + 320, 0, 320, 240);
@@ -159,6 +166,7 @@ void blobTracker::draw(){
     depthImage.draw(320, outImage[0].height, 320, 240);
     contourFinder.draw(320, outImage[0].height, 320, 240);
     //outImage[3].draw(960, kinect.height, 320, 240);
+     */
 
     stringstream reportStr;
     reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
