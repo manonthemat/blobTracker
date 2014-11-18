@@ -10,8 +10,8 @@ void blobTracker::setup(){
 //    float t = getInitialDistance(&kinect);
 //    ofLog() << "distance at 0 0 is " << t;
 
-    nearThreshold = 2000;
-    farThreshold = 2200;
+    nearThreshold = 500;
+    farThreshold = 1200;
     kinect.setDepthClipping(nearThreshold, farThreshold);
 
     colorImage.allocate(kinect.width, kinect.height);
@@ -35,6 +35,39 @@ void blobTracker::setup(){
     dest[3] = ofPoint(0, 480);
 
     timer = 0;
+
+    // setting up the networking
+    sender.setup("localhost", 9998);
+    receiver.setup(7600);
+}
+
+//--------------------------------------------------------------
+/*
+void blobTracker::sendMessage(ofxOscSender* sender, string message) {
+    ofxOscMessage m;
+    m.setAddress(message);
+    sender->sendMessage(m);
+}
+*/
+
+//--------------------------------------------------------------
+void blobTracker::sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool flipped=false) {
+    if (id == -1) {
+        return;
+    }
+
+    ofxOscMessage m;
+    m.setAddress("/shoot");
+    float x = pos.x / kinect.width;
+    float y = pos.y / kinect.height;
+    if (flipped) {
+        x = 1-x;
+        y = 1-y;
+    }
+    m.addFloatArg(x);
+    m.addFloatArg(y);
+    m.addIntArg(id);
+    sender->sendMessage(m);
 }
 
 //--------------------------------------------------------------
@@ -84,6 +117,7 @@ void blobTracker::manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorI
                 timer = ofGetUnixTime();
                 int c = getColorId(&outImage[i]);
                 ofLog() << "color id for ball " << i << " is " << c;
+                sendHitMessage(&sender, blob.centroid, c);
             }
         } else {
             balls[i].processed = false;
@@ -111,7 +145,7 @@ void blobTracker::update(){
 
 //--------------------------------------------------------------
 int blobTracker::getColorId(ofxCvColorImage* ballImage) {
-    ofPixels pixels = ballImage->getPixelsRef();
+    ofPixels pixels = ballImage->getPixels();
     unsigned int numPixels = 0;
     unsigned int r = 0.0;
     unsigned int g = 0.0;
@@ -157,7 +191,6 @@ int blobTracker::getColorId(ofxCvColorImage* ballImage) {
 //--------------------------------------------------------------
 void blobTracker::draw(){
     depthImage.draw(320, outImage[0].height, 320, 240);
-    /*
     contourFinder.draw(320, outImage[0].height, 320, 240);
     outImage[0].draw(0, 0, outImage[0].width, outImage[0].height);
     outImage[1].draw(outImage[0].width, 0, 320, 240);
@@ -173,7 +206,6 @@ void blobTracker::draw(){
               << "fps is: " << ofGetFrameRate() << endl;
               //<< "total blobs: " << totalBlobCounter;
     ofDrawBitmapString(reportStr.str(), 0, 700);
-    */
 }
 
 //--------------------------------------------------------------

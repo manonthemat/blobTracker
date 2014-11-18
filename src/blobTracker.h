@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxKinect.h"
 #include "ofxOpenCv.h"
+#include "ofxOsc.h"
 #include "blobObject.h"
 
 class blobTracker : public ofBaseApp{
@@ -14,6 +15,8 @@ class blobTracker : public ofBaseApp{
         void exit();
 
         ofxKinect kinect;
+        ofxOscSender sender;
+        ofxOscReceiver receiver;
 
         ofxCvColorImage colorImage;
         ofxCvColorImage ballImage[4];
@@ -31,6 +34,8 @@ class blobTracker : public ofBaseApp{
 
         unsigned int timer;
 
+        //void sendMessage(ofxOscSender* sender, string message);
+        void sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool flipped);
         void manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorImage* origImg, ofxCvGrayscaleImage* depthImg);
         float getInitialDistance(ofxKinect* kinect);
         int getColorId(ofxCvColorImage* ballImage);
