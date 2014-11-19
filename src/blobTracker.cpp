@@ -310,8 +310,11 @@ void blobTracker::keyPressed(int key){
         case ' ':
             drawCams = !drawCams;
             break;
-        case 't':
+        case 'r':
             kinect.setDepthClipping(origNearClipping, origFarClipping);
+            break;
+        case 'R':
+            kinect.setDepthClipping(nearThreshold, farThreshold);
             break;
         case 'x':
             flip = !flip;
