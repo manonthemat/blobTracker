@@ -177,6 +177,7 @@ void blobTracker::manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorI
                 int c = getColorId(&outImage[i]);
                 ofLog() << "color id for ball " << i << " is " << c;
                 sendHitMessage(&sender, blob.centroid, c);
+                outImage[i].set(0, 0, 0); // clear the outImage -> all black
             }
         } else {
             balls[i].processed = false;
@@ -266,10 +267,6 @@ void blobTracker::draw(){
         colorImage.draw(0, 0, colorImage.width, colorImage.height);
         depthImage.draw(colorImage.width, 0, 320, 240);
         contourFinder.draw(colorImage.width, 0, 320, 240);
-        outImage[0].draw(colorImage.width + 320, 0, 320, 240);
-        outImage[1].draw(colorImage.width, 240, 320, 240);
-        outImage[2].draw(colorImage.width + 320, 240, 320, 240);
-        //outImage[3].draw(960, kinect.height, 320, 240);
 
         // draw area of interest
         ofCircle(dest[0].x, dest[0].y, 3);
@@ -319,7 +316,3 @@ void blobTracker::keyPressed(int key){
 }
 
 //--------------------------------------------------------------
-float blobTracker::getInitialDistance(ofxKinect* kinect) {
-    float min = kinect->getDistanceAt(0,0);
-    return min;
-}

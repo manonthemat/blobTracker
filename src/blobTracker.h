@@ -44,7 +44,6 @@ class blobTracker : public ofBaseApp{
         bool autoConfigureClipping(ofxKinect* kinect);
         void sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool flipped);
         void manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorImage* origImg, ofxCvGrayscaleImage* depthImg);
-        float getInitialDistance(ofxKinect* kinect);
         int getColorId(ofxCvColorImage* ballImage);
 
         void keyPressed(int key);
