@@ -11,11 +11,8 @@ void blobTracker::setup(){
     origNearClipping = kinect.getNearClipping();
     origFarClipping = kinect.getFarClipping();
 
-//    float t = getInitialDistance(&kinect);
-//    ofLog() << "distance at 0 0 is " << t;
-
-    nearThreshold = 2000;
-    farThreshold = 2200;
+    nearThreshold = 500;
+    farThreshold = 4000;
 
     colorImage.allocate(kinect.width, kinect.height);
     depthImage.allocate(kinect.width, kinect.height);
@@ -42,8 +39,9 @@ void blobTracker::setup(){
     sender.setup("localhost", 9999);
     receiver.setup(7600);
 }
+
 //--------------------------------------------------------------
-bool blobTracker::autoConfig(ofxKinect* kinect) {
+bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     // setting the dest(ination) points through this function
     // on successful execution should return true (which should be assigned to the boolean variable "configured" in this example
     kinect->setDepthClipping(origNearClipping, origFarClipping);
@@ -65,6 +63,42 @@ bool blobTracker::autoConfig(ofxKinect* kinect) {
     } else {
         return false;
     }
+}
+
+//--------------------------------------------------------------
+bool blobTracker::autoConfigureClipping(ofxKinect* kinect) {
+    bool success = false;
+    bool all_black = false;
+
+    kinect->setDepthClipping(500, 4000); // setting depth clipping to standard thresholds 500/4000;
+    for (int i = 4000; i > 500; i-=10) {
+        ofLog() << "i is " << i;
+        kinect->setDepthClipping(i-10, i);
+        kinect->update();
+        unsigned char* pixels = kinect->getDepthPixels();
+        // iterate over pixels, when there's a pixel that's not black, break out of the loop
+        for (int p = 0, n = kinect->width * kinect->height; p < n; p++) {
+            if (p == n-1 && pixels[p] == 0) {
+                ofLog() << "n is " << n;
+                all_black = true;
+            }
+            else if (pixels[p] != 0) {
+                break;;
+            }
+            // if we're at the end of the iteration (all pixels are black), set all_black to true
+        }
+        // if the pixels are all black (all_black is true), save i as the new farThreshold minus a security buffer and set success to true
+        if (all_black == true) {
+            ofLog() << "setting the nearThreshold to " << i-10;
+            ofLog() << "setting the farThreshold to " << i;
+            nearThreshold = i - 10;
+            farThreshold = i;
+            kinect->setDepthClipping(nearThreshold, farThreshold); // set depth clipping to the new values
+            success = true;
+            break; // exiting the for-loop
+        }
+    }
+    return success;
 }
 
 //--------------------------------------------------------------
@@ -168,7 +202,7 @@ void blobTracker::update(){
             manipulateBlobs(&contourFinder, &colorImage, &depthImage); // calling the work-horse
         } else {
             sendConfigStatus(&sender, 0); // send OSC message to show auto-configure screen in unity3d
-            configured = autoConfig(&kinect);
+            configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
         }
     }
 }
@@ -247,7 +281,7 @@ void blobTracker::draw(){
         reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
                   << "clipping distance for kinect depth: " << nearThreshold << "/" << farThreshold << endl
                   << "fps is: " << ofGetFrameRate() << endl;
-        ofDrawBitmapString(reportStr.str(), 0, 700);
+        ofDrawBitmapString(reportStr.str(), 0, 0);
     }
 }
 

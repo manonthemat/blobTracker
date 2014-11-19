@@ -40,7 +40,8 @@ class blobTracker : public ofBaseApp{
         unsigned int timer;
 
         void sendConfigStatus(ofxOscSender* sender, int config_completed);
-        bool autoConfig(ofxKinect* kinect);
+        bool autoConfigureViewport(ofxKinect* kinect);
+        bool autoConfigureClipping(ofxKinect* kinect);
         void sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool flipped);
         void manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorImage* origImg, ofxCvGrayscaleImage* depthImg);
         float getInitialDistance(ofxKinect* kinect);
