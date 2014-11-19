@@ -15,6 +15,7 @@ class blobTracker : public ofBaseApp{
         void exit();
 
         ofxKinect kinect;
+        int origNearClipping, origFarClipping;
         ofxOscSender sender;
         ofxOscReceiver receiver;
 
@@ -23,12 +24,12 @@ class blobTracker : public ofBaseApp{
         ofxCvColorImage outImage[4];
 
         ofxCvGrayscaleImage depthImage; // kinect grayscale depth image
+        ofxCvGrayscaleImage configImage;
         ofxCvContourFinder contourFinder;
 
         int nearThreshold, farThreshold; // to be used for kinect's depth clipping
-        //int totalBlobCounter; // blob counter to keep track of blobs
 
-        bool drawCams;
+        bool drawCams, configured;
 
         blobObject balls[4];
         ofPoint dest[4];
@@ -36,7 +37,8 @@ class blobTracker : public ofBaseApp{
 
         unsigned int timer;
 
-        //void sendMessage(ofxOscSender* sender, string message);
+        void sendConfigStatus(ofxOscSender* sender, int config_completed);
+        bool autoConfig(ofxKinect* kinect);
         void sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool flipped);
         void manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorImage* origImg, ofxCvGrayscaleImage* depthImg);
         float getInitialDistance(ofxKinect* kinect);

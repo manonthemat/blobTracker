@@ -4,16 +4,18 @@
 void blobTracker::setup(){
     ofLogToFile("log.txt", true); // append to logfile log.txt
     drawCams = false;
+    configured = false;
     kinect.setRegistration(true); // to enabe depth->video image calibration
     kinect.init(false, true, false); // no infrared, yes to video, no to texture
     kinect.open();
+    origNearClipping = kinect.getNearClipping();
+    origFarClipping = kinect.getFarClipping();
 
 //    float t = getInitialDistance(&kinect);
 //    ofLog() << "distance at 0 0 is " << t;
 
-    nearThreshold = 500;
-    farThreshold = 1200;
-    kinect.setDepthClipping(nearThreshold, farThreshold);
+    nearThreshold = 2000;
+    farThreshold = 2200;
 
     colorImage.allocate(kinect.width, kinect.height);
     depthImage.allocate(kinect.width, kinect.height);
@@ -29,7 +31,6 @@ void blobTracker::setup(){
 
     ofSetFrameRate(60);
 
-    //totalBlobCounter = 0;
     dest[0] = ofPoint(0, 0);
     dest[1] = ofPoint(640, 0);
     dest[2] = ofPoint(640, 480);
@@ -41,15 +42,36 @@ void blobTracker::setup(){
     sender.setup("localhost", 9999);
     receiver.setup(7600);
 }
+//--------------------------------------------------------------
+bool blobTracker::autoConfig(ofxKinect* kinect) {
+    // setting the dest(ination) points through this function
+    // on successful execution should return true (which should be assigned to the boolean variable "configured" in this example
+    kinect->setDepthClipping(origNearClipping, origFarClipping);
+    configImage.setFromPixels(kinect->getDepthPixels());
+    configImage.blurHeavily();
+    contourFinder.findContours(configImage, 30000, kinect->width * kinect->height, 1, false);
+    if (contourFinder.nBlobs != 0) {
+        /*
+        dest[0] = contourFinder.blobs[0].boundingRect.getTopLeft();
+        dest[1] = contourFinder.blobs[0].boundingRect.getTopRight();
+        dest[2] = contourFinder.blobs[0].boundingRect.getBottomLeft();
+        dest[3] = contourFinder.blobs[0].boundingRect.getBottomRight();
+         */
+        sendConfigStatus(&sender, 1); // send OSC message to hide auto-configure screen in unity3d
+        kinect->setDepthClipping(nearThreshold, farThreshold);
+        return true;
+    } else {
+        return false;
+    }
+}
 
 //--------------------------------------------------------------
-/*
-void blobTracker::sendMessage(ofxOscSender* sender, string message) {
+void blobTracker::sendConfigStatus(ofxOscSender* sender, int config_completed) {
     ofxOscMessage m;
-    m.setAddress(message);
+    m.setAddress("/config");
+    m.addIntArg(config_completed);
     sender->sendMessage(m);
 }
-*/
 
 //--------------------------------------------------------------
 void blobTracker::sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool flipped=false) {
@@ -138,9 +160,14 @@ void blobTracker::update(){
         depthImage.blur(3);
 
         depthImage.flagImageChanged(); // mark the depthImage as being changed
-        contourFinder.findContours(depthImage, 100, 50000, 4, false); // find contours
+        if (configured) {
+            contourFinder.findContours(depthImage, 100, 50000, 4, false); // find contours
 
-        manipulateBlobs(&contourFinder, &colorImage, &depthImage); // calling the work-horse
+            manipulateBlobs(&contourFinder, &colorImage, &depthImage); // calling the work-horse
+        } else {
+            sendConfigStatus(&sender, 0); // send OSC message to show auto-configure screen in unity3d
+            configured = autoConfig(&kinect);
+        }
     }
 }
 
@@ -191,6 +218,14 @@ int blobTracker::getColorId(ofxCvColorImage* ballImage) {
 
 //--------------------------------------------------------------
 void blobTracker::draw(){
+    if (!configured) {
+        // if not configured, draw red screen
+        ofBackground(255, 0, 0);
+        
+    }
+    else {
+        ofBackground(255, 255, 255);
+    }
     if (drawCams) {
         depthImage.draw(320, outImage[0].height, 320, 240);
         contourFinder.draw(320, outImage[0].height, 320, 240);
@@ -206,7 +241,6 @@ void blobTracker::draw(){
         reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
                   << "clipping distance for kinect depth: " << nearThreshold << "/" << farThreshold << endl
                   << "fps is: " << ofGetFrameRate() << endl;
-                  //<< "total blobs: " << totalBlobCounter;
         ofDrawBitmapString(reportStr.str(), 0, 700);
     }
 }
