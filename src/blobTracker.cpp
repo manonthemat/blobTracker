@@ -47,16 +47,18 @@ bool blobTracker::autoConfig(ofxKinect* kinect) {
     // setting the dest(ination) points through this function
     // on successful execution should return true (which should be assigned to the boolean variable "configured" in this example
     kinect->setDepthClipping(origNearClipping, origFarClipping);
-    configImage.setFromPixels(kinect->getDepthPixels());
-    configImage.blurHeavily();
-    contourFinder.findContours(configImage, 30000, kinect->width * kinect->height, 1, false);
-    if (contourFinder.nBlobs != 0) {
-        /*
-        dest[0] = contourFinder.blobs[0].boundingRect.getTopLeft();
-        dest[1] = contourFinder.blobs[0].boundingRect.getTopRight();
-        dest[2] = contourFinder.blobs[0].boundingRect.getBottomLeft();
-        dest[3] = contourFinder.blobs[0].boundingRect.getBottomRight();
-         */
+    configImage.setFromPixels(kinect->getPixels());
+    configImage.blur();
+    configFinder.setAutoThreshold(true);
+    configFinder.setMinArea(1000);
+    configFinder.setTargetColor(ofColor::white);
+    configFinder.findContours(configImage);
+    if (configFinder.size() != 0) {
+        cv::Rect rect = configFinder.getBoundingRect(0);
+        dest[0] = ofPoint(rect.x, rect.y);
+        dest[1] = ofPoint(rect.x + rect.width, rect.y);
+        dest[2] = ofPoint(rect.x + rect.width, rect.y + rect.height);
+        dest[3] = ofPoint(rect.x, rect.y + rect.height);
         sendConfigStatus(&sender, 1); // send OSC message to hide auto-configure screen in unity3d
         kinect->setDepthClipping(nearThreshold, farThreshold);
         return true;
@@ -227,15 +229,19 @@ void blobTracker::draw(){
         ofBackground(255, 255, 255);
     }
     if (drawCams) {
-        depthImage.draw(320, outImage[0].height, 320, 240);
-        contourFinder.draw(320, outImage[0].height, 320, 240);
-        outImage[0].draw(0, 0, outImage[0].width, outImage[0].height);
-        outImage[1].draw(outImage[0].width, 0, 320, 240);
-        outImage[2].draw(outImage[0].width + 320, 0, 320, 240);
-        colorImage.draw(0, outImage[0].height, 320, 240);
-        depthImage.draw(320, outImage[0].height, 320, 240);
-        contourFinder.draw(320, outImage[0].height, 320, 240);
+        colorImage.draw(0, 0, colorImage.width, colorImage.height);
+        depthImage.draw(colorImage.width, 0, 320, 240);
+        contourFinder.draw(colorImage.width, 0, 320, 240);
+        outImage[0].draw(colorImage.width + 320, 0, 320, 240);
+        outImage[1].draw(colorImage.width, 240, 320, 240);
+        outImage[2].draw(colorImage.width + 320, 240, 320, 240);
         //outImage[3].draw(960, kinect.height, 320, 240);
+
+        // draw area of interest
+        ofCircle(dest[0].x, dest[0].y, 3);
+        ofCircle(dest[1].x, dest[1].y, 3);
+        ofCircle(dest[2].x, dest[2].y, 3);
+        ofCircle(dest[3].x, dest[3].y, 3);
 
         stringstream reportStr;
         reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
@@ -271,6 +277,9 @@ void blobTracker::keyPressed(int key){
             break;
         case ' ':
             drawCams = !drawCams;
+            break;
+        case 't':
+            kinect.setDepthClipping(origNearClipping, origFarClipping);
             break;
     }
 }

@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxKinect.h"
 #include "ofxOpenCv.h"
+#include "ofxCv.h"
 #include "ofxOsc.h"
 #include "blobObject.h"
 
@@ -24,7 +25,8 @@ class blobTracker : public ofBaseApp{
         ofxCvColorImage outImage[4];
 
         ofxCvGrayscaleImage depthImage; // kinect grayscale depth image
-        ofxCvGrayscaleImage configImage;
+        ofxCvColorImage configImage;
+        ofxCv::ContourFinder configFinder;
         ofxCvContourFinder contourFinder;
 
         int nearThreshold, farThreshold; // to be used for kinect's depth clipping
