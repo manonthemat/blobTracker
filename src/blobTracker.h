@@ -36,6 +36,7 @@ class blobTracker : public ofBaseApp{
         blobObject balls[4];
         ofPoint dest[4];
         ofPoint src[4];
+        bool flip;
 
         unsigned int timer;
 

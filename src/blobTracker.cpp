@@ -48,7 +48,7 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     configImage.setFromPixels(kinect->getPixels());
     configImage.blur();
     configFinder.setAutoThreshold(true);
-    configFinder.setMinArea(1000);
+    configFinder.setMinArea(10000);
     configFinder.setTargetColor(ofColor::white);
     configFinder.findContours(configImage);
     if (configFinder.size() != 0) {
@@ -176,7 +176,7 @@ void blobTracker::manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorI
                 timer = ofGetUnixTime();
                 int c = getColorId(&outImage[i]);
                 ofLog() << "color id for ball " << i << " is " << c;
-                sendHitMessage(&sender, blob.centroid, c);
+                sendHitMessage(&sender, blob.centroid, c, flip);
                 outImage[i].set(0, 0, 0); // clear the outImage -> all black
             }
         } else {
@@ -277,7 +277,8 @@ void blobTracker::draw(){
         stringstream reportStr;
         reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
                   << "clipping distance for kinect depth: " << nearThreshold << "/" << farThreshold << endl
-                  << "fps is: " << ofGetFrameRate() << endl;
+                  << "fps is: " << ofGetFrameRate() << endl
+                  << "flipped: " << flip << endl;
         ofDrawBitmapString(reportStr.str(), 0, 0);
     }
 }
@@ -311,6 +312,9 @@ void blobTracker::keyPressed(int key){
             break;
         case 't':
             kinect.setDepthClipping(origNearClipping, origFarClipping);
+            break;
+        case 'x':
+            flip = !flip;
             break;
     }
 }
