@@ -55,7 +55,7 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     configImage.blur();
     configFinder.setAutoThreshold(true);
     configFinder.setMinArea(1000);
-    configFinder.setTargetColor(ofColor::white);
+    configFinder.setTargetColor(ofColor::red);
     configFinder.findContours(configImage);
     if (configFinder.size() != 0) {
         cv::Rect rect = configFinder.getBoundingRect(0);
