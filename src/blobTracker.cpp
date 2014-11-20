@@ -95,10 +95,10 @@ bool blobTracker::autoConfigureClipping(ofxKinect* kinect) {
         }
         // if the pixels are all black (all_black is true), save i as the new farThreshold minus a security buffer and set success to true
         if (all_black == true) {
-            ofLog() << "setting the nearThreshold to " << i-10;
-            ofLog() << "setting the farThreshold to " << i;
             nearThreshold = i - 100;
             farThreshold = i;
+            ofLog() << "setting the nearThreshold to " << nearThreshold;
+            ofLog() << "setting the farThreshold to " << farThreshold;
             kinect->setDepthClipping(nearThreshold, farThreshold); // set depth clipping to the new values
             success = true;
             break; // exiting the for-loop
