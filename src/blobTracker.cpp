@@ -46,7 +46,7 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     // setting the dest(ination) points through this function
     // on successful execution should return true (which should be assigned to the boolean variable "configured" in this example
     kinect->setDepthClipping(origNearClipping, origFarClipping);
-    configImage.setFromPixels(kinect->getPixels());
+    configImage.setFromPixels(kinect->getPixelsRef());
     configImage.blur();
     configFinder.setAutoThreshold(true);
     configFinder.setMinArea(1000);
@@ -220,7 +220,8 @@ void blobTracker::update(){
 
 //--------------------------------------------------------------
 int blobTracker::getColorId(ofxCvColorImage* ballImage) {
-    ofPixels pixels = ballImage->getPixels();
+    ofPixels pixels;
+    pixels.setFromPixels(ballImage->getPixels(), ballImage->width, ballImage->height, 3);
     unsigned int numPixels = 0;
     unsigned int r = 0.0;
     unsigned int g = 0.0;
