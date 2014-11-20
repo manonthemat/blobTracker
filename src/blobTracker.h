@@ -20,7 +20,7 @@ class blobTracker : public ofBaseApp{
         ofxOscSender sender;
         ofxOscReceiver receiver;
 
-        ofxCvColorImage colorImage;
+        ofxCvColorImage colorImage, tmp;
         ofxCvColorImage ballImage[4];
         ofxCvColorImage outImage[4];
 

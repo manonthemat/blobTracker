@@ -15,6 +15,7 @@ void blobTracker::setup(){
     farThreshold = 4000;
 
     colorImage.allocate(kinect.width, kinect.height);
+    tmp.allocate(kinect.width, kinect.height);
     depthImage.allocate(kinect.width, kinect.height);
 
     ballImage[0].allocate(kinect.width, kinect.height);
@@ -48,7 +49,7 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     configImage.setFromPixels(kinect->getPixels());
     configImage.blur();
     configFinder.setAutoThreshold(true);
-    configFinder.setMinArea(10000);
+    configFinder.setMinArea(1000);
     configFinder.setTargetColor(ofColor::white);
     configFinder.findContours(configImage);
     if (configFinder.size() != 0) {
@@ -72,14 +73,14 @@ bool blobTracker::autoConfigureClipping(ofxKinect* kinect) {
 
     kinect->setDepthClipping(500, 4000); // setting depth clipping to standard thresholds 500/4000;
     for (int i = 4000; i > 500; i-=10) {
-        ofLog() << "i is " << i;
+        //ofLog() << "i is " << i;
         kinect->setDepthClipping(i-10, i);
         kinect->update();
         unsigned char* pixels = kinect->getDepthPixels();
         // iterate over pixels, when there's a pixel that's not black, break out of the loop
         for (int p = 0, n = kinect->width * kinect->height; p < n; p++) {
             if (p == n-1 && pixels[p] == 0) {
-                ofLog() << "n is " << n;
+                //ofLog() << "n is " << n;
                 all_black = true;
             }
             else if (pixels[p] != 0) {
@@ -117,8 +118,14 @@ void blobTracker::sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool
 
     ofxOscMessage m;
     m.setAddress("/shoot");
-    float x = pos.x / kinect.width;
-    float y = pos.y / kinect.height;
+    // if pos is out of dest bounds, return (and don't send a hit message)
+    if ((pos.x < dest[0].x) || (pos.x > dest[1].x) || (pos.y < dest[0].y) || (pos.y > dest[2].y)) {
+        return;
+    }
+    float x = (pos.x - dest[0].x) / (dest[1].x - dest[0].x);
+    float y = (pos.y - dest[0].y) / (dest[2].y - dest[0].y);
+    //float x = pos.x / kinect.width;
+    //float y = pos.y / kinect.height;
     if (flipped) {
         x = 1-x;
         y = 1-y;
@@ -126,6 +133,7 @@ void blobTracker::sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool
     m.addFloatArg(x);
     m.addFloatArg(y);
     m.addIntArg(id);
+    //ofLog() << "sending hit message " << x << " " << y << " " << id;
     sender->sendMessage(m);
 }
 
@@ -175,7 +183,7 @@ void blobTracker::manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorI
                 balls[i].processed = true;
                 timer = ofGetUnixTime();
                 int c = getColorId(&outImage[i]);
-                ofLog() << "color id for ball " << i << " is " << c;
+                //ofLog() << "color id for ball " << i << " is " << c;
                 sendHitMessage(&sender, blob.centroid, c, flip);
                 outImage[i].set(0, 0, 0); // clear the outImage -> all black
             }
@@ -192,7 +200,9 @@ void blobTracker::update(){
 
     // will only be executed if the connection to the kinect is established and there's a new frame
     if(kinect.isFrameNew()) {
-        colorImage.setFromPixels(kinect.getPixels(), kinect.width, kinect.height);
+        //colorImage.setFromPixels(kinect.getPixels(), kinect.width, kinect.height);
+        tmp.setFromPixels(kinect.getPixels(), kinect.width, kinect.height);
+        colorImage.warpIntoMe(tmp, src, dest);
         depthImage.setFromPixels(kinect.getDepthPixels(), kinect.width, kinect.height);
         depthImage.blur(3);
 
@@ -230,7 +240,7 @@ int blobTracker::getColorId(ofxCvColorImage* ballImage) {
         float hue = ofColor((int)r/numPixels, (int)g/numPixels, (int)b/numPixels).getHueAngle();
 
         hue = (int) hue;
-        ofLog() << "hue: " << hue;
+        //ofLog() << "hue: " << hue;
 
         if (hue >= 330 || hue <= 29)
             return 0; // red
@@ -264,7 +274,8 @@ void blobTracker::draw(){
         ofBackground(255, 255, 255);
     }
     if (drawCams) {
-        colorImage.draw(0, 0, colorImage.width, colorImage.height);
+        //colorImage.draw(0, 0, colorImage.width, colorImage.height);
+        tmp.draw(0, 0, colorImage.width, colorImage.height);
         depthImage.draw(colorImage.width, 0, 320, 240);
         contourFinder.draw(colorImage.width, 0, 320, 240);
 
