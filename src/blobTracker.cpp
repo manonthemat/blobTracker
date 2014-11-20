@@ -77,7 +77,7 @@ bool blobTracker::autoConfigureClipping(ofxKinect* kinect) {
     bool all_black = false;
 
     kinect->setDepthClipping(500, 4000); // setting depth clipping to standard thresholds 500/4000;
-    for (int i = 4000; i > 500; i-=10) {
+    for (int i = 4000; i > 600; i-=10) {
         //ofLog() << "i is " << i;
         kinect->setDepthClipping(i-10, i);
         kinect->update();
@@ -97,7 +97,7 @@ bool blobTracker::autoConfigureClipping(ofxKinect* kinect) {
         if (all_black == true) {
             ofLog() << "setting the nearThreshold to " << i-10;
             ofLog() << "setting the farThreshold to " << i;
-            nearThreshold = i - 10;
+            nearThreshold = i - 100;
             farThreshold = i;
             kinect->setDepthClipping(nearThreshold, farThreshold); // set depth clipping to the new values
             success = true;
