@@ -40,6 +40,7 @@ class blobTracker : public ofBaseApp{
 
         unsigned int timer;
 
+        void presetPoints();
         void sendConfigStatus(ofxOscSender* sender, int config_completed);
         bool autoConfigureViewport(ofxKinect* kinect);
         bool autoConfigureClipping(ofxKinect* kinect);

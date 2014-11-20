@@ -29,16 +29,21 @@ void blobTracker::setup(){
 
     ofSetFrameRate(60);
 
-    dest[0] = ofPoint(0, 0);
-    dest[1] = ofPoint(640, 0);
-    dest[2] = ofPoint(640, 480);
-    dest[3] = ofPoint(0, 480);
+    presetPoints();
 
     timer = 0;
 
     // setting up the networking
     sender.setup("localhost", 9999);
     receiver.setup(7600);
+}
+
+//--------------------------------------------------------------
+void blobTracker::presetPoints() {
+    dest[0] = ofPoint(0, 0);
+    dest[1] = ofPoint(640, 0);
+    dest[2] = ofPoint(640, 480);
+    dest[3] = ofPoint(0, 480);
 }
 
 //--------------------------------------------------------------
@@ -269,9 +274,9 @@ void blobTracker::draw(){
     if (!configured) {
         // if not configured, draw red screen
         ofBackground(255, 0, 0);
-        
     }
     else {
+        // draw white screen when configured
         ofBackground(255, 255, 255);
     }
     if (drawCams) {
@@ -330,6 +335,9 @@ void blobTracker::keyPressed(int key){
             break;
         case 'x':
             flip = !flip;
+            break;
+        case 'p':
+            presetPoints();
             break;
     }
 }
