@@ -36,6 +36,8 @@ void blobTracker::setup(){
     // setting up the networking
     sender.setup("localhost", 9999);
     receiver.setup(7600);
+    sendConfigStatus(&sender, 0); // send OSC message to show auto-configure screen in unity3d
+    configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
 }
 
 //--------------------------------------------------------------
@@ -76,32 +78,34 @@ bool blobTracker::autoConfigureClipping(ofxKinect* kinect) {
     bool success = false;
     bool all_black = false;
 
-    kinect->setDepthClipping(500, 4000); // setting depth clipping to standard thresholds 500/4000;
-    for (int i = 4000; i > 600; i-=10) {
-        //ofLog() << "i is " << i;
-        kinect->setDepthClipping(i-10, i);
-        kinect->update();
-        unsigned char* pixels = kinect->getDepthPixels();
-        // iterate over pixels, when there's a pixel that's not black, break out of the loop
-        for (int p = 0, n = kinect->width * kinect->height; p < n; p++) {
-            if (p == n-1 && pixels[p] == 0) {
-                //ofLog() << "n is " << n;
-                all_black = true;
+    if (kinect->isConnected()) {
+        kinect->setDepthClipping(500, 4000); // setting depth clipping to standard thresholds 500/4000;
+        for (int i = 4000; i > 500; i-=10) {
+            //ofLog() << "i is " << i;
+            kinect->setDepthClipping(i-10, i);
+            kinect->update();
+            unsigned char* pixels = kinect->getDepthPixels();
+            // iterate over pixels, when there's a pixel that's not black, break out of the loop
+            for (int p = 0, n = kinect->width * kinect->height; p < n; p++) {
+                if ((p > 1000) && (p == n-1) && (pixels[p] == 0)) {
+                    // if we're at the end of the iteration (all pixels are black), set all_black to true
+                    //ofLog() << "n is " << n;
+                    all_black = true;
+                }
+                else if (pixels[p] != 0) {
+                    break;
+                }
             }
-            else if (pixels[p] != 0) {
-                break;;
+            // if the pixels are all black (all_black is true), save i as the new farThreshold minus a security buffer and set success to true
+            if (all_black) {
+                nearThreshold = i - 10;
+                farThreshold = i;
+                ofLog() << "setting the nearThreshold to " << nearThreshold;
+                ofLog() << "setting the farThreshold to " << farThreshold;
+                kinect->setDepthClipping(nearThreshold, farThreshold); // set depth clipping to the new values
+                success = true;
+                break; // exiting the for-loop
             }
-            // if we're at the end of the iteration (all pixels are black), set all_black to true
-        }
-        // if the pixels are all black (all_black is true), save i as the new farThreshold minus a security buffer and set success to true
-        if (all_black == true) {
-            nearThreshold = i - 100;
-            farThreshold = i;
-            ofLog() << "setting the nearThreshold to " << nearThreshold;
-            ofLog() << "setting the farThreshold to " << farThreshold;
-            kinect->setDepthClipping(nearThreshold, farThreshold); // set depth clipping to the new values
-            success = true;
-            break; // exiting the for-loop
         }
     }
     return success;
@@ -213,11 +217,12 @@ void blobTracker::update(){
 
         depthImage.flagImageChanged(); // mark the depthImage as being changed
         if (configured) {
-            contourFinder.findContours(depthImage, 100, 50000, 4, false); // find contours
+            contourFinder.findContours(depthImage, 100, 30000, 4, false); // find contours
 
             manipulateBlobs(&contourFinder, &colorImage, &depthImage); // calling the work-horse
         } else {
-            sendConfigStatus(&sender, 0); // send OSC message to show auto-configure screen in unity3d
+            ofLog() << "CONFIGURATION FAILED!!!";
+            // try again...
             configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
         }
     }
@@ -281,9 +286,9 @@ void blobTracker::draw(){
     }
     if (drawCams) {
         //colorImage.draw(0, 0, colorImage.width, colorImage.height);
-        tmp.draw(0, 0, colorImage.width, colorImage.height);
-        depthImage.draw(colorImage.width, 0, 320, 240);
-        contourFinder.draw(colorImage.width, 0, 320, 240);
+        tmp.draw(0, 0, tmp.width, tmp.height);
+        depthImage.draw(tmp.width, 0, 320, 240);
+        contourFinder.draw(tmp.width, 0, 320, 240);
 
         // draw area of interest
         ofCircle(dest[0].x, dest[0].y, 3);
