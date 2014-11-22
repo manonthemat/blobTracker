@@ -235,9 +235,11 @@ int blobTracker::getColorId(ofxCvColorImage* ballImage) {
         hue = (int) hue;
         ofLog() << "hue: " << hue;
 
+        if (hue >=250 || hue <=50)
+            return 0;
+/*
         if (hue >= 330 || hue <= 29)
             return 0; // red
-/*
         else if (hue >= 30 && hue <= 75)
             return 1; // yellow
 
