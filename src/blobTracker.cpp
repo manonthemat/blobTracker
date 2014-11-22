@@ -2,7 +2,6 @@
 
 //--------------------------------------------------------------
 void blobTracker::setup(){
-    ofLogToFile("log.txt", true); // append to logfile log.txt
     drawCams = false;
     configured = false;
     kinect.setRegistration(true); // to enabe depth->video image calibration
@@ -11,8 +10,10 @@ void blobTracker::setup(){
     origNearClipping = kinect.getNearClipping();
     origFarClipping = kinect.getFarClipping();
 
-    nearThreshold = 500;
-    farThreshold = 4000;
+    flip = true;
+
+    nearThreshold = 2100;
+    farThreshold = 2200;
 
     colorImage.allocate(kinect.width, kinect.height);
     tmp.allocate(kinect.width, kinect.height);
@@ -37,15 +38,18 @@ void blobTracker::setup(){
     sender.setup("localhost", 9999);
     receiver.setup(7600);
     sendConfigStatus(&sender, 0); // send OSC message to show auto-configure screen in unity3d
-    configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
+    // ON-SITE: disabling autoconfigureclipping -> set manual values for now
+    kinect.setDepthClipping(nearThreshold, farThreshold);
+    configured = true;
+    //configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
 }
 
 //--------------------------------------------------------------
 void blobTracker::presetPoints() {
-    dest[0] = ofPoint(0, 0);
-    dest[1] = ofPoint(640, 0);
-    dest[2] = ofPoint(640, 480);
-    dest[3] = ofPoint(0, 480);
+    dest[0] = ofPoint(30, 85);
+    dest[1] = ofPoint(625, 75);
+    dest[2] = ofPoint(545, 420);
+    dest[3] = ofPoint(105, 422);
 }
 
 //--------------------------------------------------------------
@@ -133,6 +137,7 @@ void blobTracker::sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool
     }
     float x = (pos.x - dest[0].x) / (dest[1].x - dest[0].x);
     float y = (pos.y - dest[0].y) / (dest[2].y - dest[0].y);
+    ofLog() << "y: " << y << " x: " << x << endl;
     //float x = pos.x / kinect.width;
     //float y = pos.y / kinect.height;
     if (flipped) {
@@ -142,7 +147,7 @@ void blobTracker::sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool
     m.addFloatArg(x);
     m.addFloatArg(y);
     m.addIntArg(id);
-    //ofLog() << "sending hit message " << x << " " << y << " " << id;
+    ofLog() << "sending hit message " << x << " " << y << " " << id;
     sender->sendMessage(m);
 }
 
@@ -151,31 +156,16 @@ void blobTracker::manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorI
     // we're expecting up to 4 blobs really (4 balls max)
     for (int i = 0, n = contourFinder->nBlobs; i < n; i++) {
         ofxCvBlob blob = contourFinder->blobs.at(i);
-        // balls is an array of 4
-        balls[i].id = i;
+        //balls[i].id = i;
         balls[i].pos.set(blob.centroid.x, blob.centroid.y);
         bool matches = balls[i].lastPos.match(balls[i].pos, 100);
+        //bool matches = true;
         if (matches) {
             if (!balls[i].processed || (ofGetUnixTime() - timer) > 1) {
-                /*
-                if (balls[i].lastPos.x < balls[i].pos.x) {
-                    balls[i].direction_x = left_to_right;
-                } else {
-                    balls[i].direction_x = right_to_left;
-                }
-                if (balls[i].lastPos.y < balls[i].pos.y) {
-                    balls[i].direction_y = top_to_down;
-                } else {
-                    balls[i].direction_y = down_to_top;
-                }
-                */
-
-                // src should be declared in the header-file as: ofPoint src[4]
                 src[0] = blob.boundingRect.getTopLeft();
                 src[1] = blob.boundingRect.getTopRight();
                 src[2] = blob.boundingRect.getBottomRight();
                 src[3] = blob.boundingRect.getBottomLeft();
-                // ballImage is a ofxCvColorImage, which has been defined in the header and allocated in our setup function
                 ballImage[i].setFromPixels(origImg->getPixels(), origImg->getWidth(), origImg->getHeight());
                 unsigned char* ballPixels = ballImage[i].getPixels();
                 unsigned char* depthPixels = depthImg->getPixels();
@@ -187,12 +177,11 @@ void blobTracker::manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorI
                     }
                 }
                 ballImage[i].setFromPixels(ballPixels, ballImage[i].getWidth(), ballImage[i].getHeight());
-                // outImage is a ofxCvColorImage, which has been defined in the header and allocated in our setup function
                 outImage[i].warpIntoMe(ballImage[i], src, dest);
                 balls[i].processed = true;
                 timer = ofGetUnixTime();
                 int c = getColorId(&outImage[i]);
-                //ofLog() << "color id for ball " << i << " is " << c;
+                ofLog() << "color id for ball " << i << " is " << c;
                 sendHitMessage(&sender, blob.centroid, c, flip);
                 outImage[i].set(0, 0, 0); // clear the outImage -> all black
             }
@@ -216,15 +205,8 @@ void blobTracker::update(){
         depthImage.blur(3);
 
         depthImage.flagImageChanged(); // mark the depthImage as being changed
-        if (configured) {
-            contourFinder.findContours(depthImage, 100, 30000, 4, false); // find contours
-
-            manipulateBlobs(&contourFinder, &colorImage, &depthImage); // calling the work-horse
-        } else {
-            ofLog() << "CONFIGURATION FAILED!!!";
-            // try again...
-            configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
-        }
+        contourFinder.findContours(depthImage, 1000, 2000, 4, false); // find contours
+        manipulateBlobs(&contourFinder, &colorImage, &depthImage); // calling the work-horse
     }
 }
 
@@ -251,7 +233,7 @@ int blobTracker::getColorId(ofxCvColorImage* ballImage) {
         float hue = ofColor((int)r/numPixels, (int)g/numPixels, (int)b/numPixels).getHueAngle();
 
         hue = (int) hue;
-        //ofLog() << "hue: " << hue;
+        ofLog() << "hue: " << hue;
 
         if (hue >= 330 || hue <= 29)
             return 0; // red
