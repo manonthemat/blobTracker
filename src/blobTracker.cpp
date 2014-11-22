@@ -137,13 +137,13 @@ void blobTracker::sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool
     }
     float x = (pos.x - dest[0].x) / (dest[1].x - dest[0].x);
     float y = (pos.y - dest[0].y) / (dest[2].y - dest[0].y);
-    ofLog() << "y: " << y << " x: " << x << endl;
-    //float x = pos.x / kinect.width;
-    //float y = pos.y / kinect.height;
     if (flipped) {
         x = 1-x;
         y = 1-y;
     }
+    // skyzone ladder coding:
+    // add some height, because the environment is quite different to the studio
+    y += 0.15;
     m.addFloatArg(x);
     m.addFloatArg(y);
     m.addIntArg(id);
