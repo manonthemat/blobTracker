@@ -60,13 +60,15 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     configImage.setFromPixels(kinect->getPixelsRef());
     configImage.blur(11);
     //configFinder.setAutoThreshold(true);
+    configFinder.setThreshold(128);
     configFinder.setMinArea(100000);
+    configFinder.setUseTargetColor(true);
     configFinder.setTargetColor(ofColor(0, 0, 255));
     configFinder.setSortBySize(true);
     configFinder.findContours(configImage);
     if (configFinder.size() != 0) {
-        //vector<cv::Point> contours = configFinder.getContour(0);
         vector<cv::Point> contours = configFinder.getContour(0);
+        //vector<cv::Point> contours = configFinder.getFitQuad(0);
         ofPoint tl = ofPoint(600, 600); // I'd rather do it C++11 style than C++98 :(
         ofPoint tr = ofPoint(0, 600);
         ofPoint br = ofPoint(0, 0);
@@ -316,6 +318,7 @@ void blobTracker::draw(){
         //colorImage.draw(0, 0, colorImage.width, colorImage.height);
         tmp.draw(0, 0, tmp.width, tmp.height);
         depthImage.draw(tmp.width, 0, 320, 240);
+        configFinder.draw();
         contourFinder.draw(tmp.width, 0, 320, 240);
 
         // draw area of interest
