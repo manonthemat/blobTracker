@@ -30,7 +30,7 @@ void blobTracker::setup(){
 
     ofSetFrameRate(60);
 
-    presetPoints();
+    //presetPoints();
 
     timer = 0;
 
@@ -40,8 +40,8 @@ void blobTracker::setup(){
     sendConfigStatus(&sender, 0); // send OSC message to show auto-configure screen in unity3d
     // ON-SITE: disabling autoconfigureclipping -> set manual values for now
     kinect.setDepthClipping(nearThreshold, farThreshold);
-    configured = true;
-    //configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
+    //configured = true;
+    configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
 }
 
 //--------------------------------------------------------------
@@ -58,17 +58,59 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     // on successful execution should return true (which should be assigned to the boolean variable "configured" in this example
     kinect->setDepthClipping(origNearClipping, origFarClipping);
     configImage.setFromPixels(kinect->getPixelsRef());
-    configImage.blur();
-    configFinder.setAutoThreshold(true);
-    configFinder.setMinArea(1000);
-    configFinder.setTargetColor(ofColor::red);
+    configImage.blur(11);
+    //configFinder.setAutoThreshold(true);
+    configFinder.setMinArea(100000);
+    configFinder.setTargetColor(ofColor(0, 0, 255));
+    configFinder.setSortBySize(true);
     configFinder.findContours(configImage);
     if (configFinder.size() != 0) {
+        //vector<cv::Point> contours = configFinder.getContour(0);
+        vector<cv::Point> contours = configFinder.getContour(0);
+        ofPoint tl = ofPoint(600, 600); // I'd rather do it C++11 style than C++98 :(
+        ofPoint tr = ofPoint(0, 600);
+        ofPoint br = ofPoint(0, 0);
+        ofPoint bl = ofPoint(600, 0);
+        /*
+        ofPoint tl = ofPoint(contours[0].x, contours[0].y);
+        ofPoint tr = ofPoint(contours[0].x, contours[0].y);
+        ofPoint bl = ofPoint(contours[0].x, contours[0].y);
+        ofPoint br = ofPoint(contours[0].x, contours[0].y);
+        */
+        for(int i=0, n=contours.size(); i<n; ++i) {
+            if((contours[i].x <= tl.x) && (contours[i].y <= tl.y))
+                tl = ofPoint(contours[i].x, contours[i].y);
+            if((contours[i].x >= tr.x) && (contours[i].y <= tr.y))
+                tr = ofPoint(contours[i].x, contours[i].y);
+            if((contours[i].x >= br.x) && (contours[i].y >= br.y))
+                br = ofPoint(contours[i].x, contours[i].y);
+            if((contours[i].x <= bl.x) && (contours[i].y >= bl.y))
+                bl = ofPoint(contours[i].x, contours[i].y);
+        }
+        ofLog() << "tl " << tl << " tr " << tr << endl;
+        ofLog() << "bl " << bl << " br " << br << endl;
         cv::Rect rect = configFinder.getBoundingRect(0);
+        ofLog() << rect.width * rect.height;
+        tl = ofPoint(rect.x, rect.y);
+        tr = ofPoint(rect.x + rect.width, rect.y);
+        br = ofPoint(rect.x + rect.width, rect.y + rect.height);
+        bl = ofPoint(rect.x, rect.y + rect.height);
+
+        // use the rectangle to look for the first red color
+        // tl = start at (rect.x, rect.y) then go down...
+        // tr = start at (rect.x, rect.y) then go down
+        // bl = start at
+        /*
         dest[0] = ofPoint(rect.x, rect.y);
         dest[1] = ofPoint(rect.x + rect.width, rect.y);
         dest[2] = ofPoint(rect.x + rect.width, rect.y + rect.height);
         dest[3] = ofPoint(rect.x, rect.y + rect.height);
+        */
+        dest[0] = tl;
+        dest[1] = tr;
+        dest[2] = br;
+        dest[3] = bl;
+
         sendConfigStatus(&sender, 1); // send OSC message to hide auto-configure screen in unity3d
         kinect->setDepthClipping(nearThreshold, farThreshold);
         return true;
@@ -198,6 +240,8 @@ void blobTracker::update(){
 
     // will only be executed if the connection to the kinect is established and there's a new frame
     if(kinect.isFrameNew()) {
+        if(!configured)
+            configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
         //colorImage.setFromPixels(kinect.getPixels(), kinect.width, kinect.height);
         tmp.setFromPixels(kinect.getPixels(), kinect.width, kinect.height);
         colorImage.warpIntoMe(tmp, src, dest);
@@ -261,8 +305,8 @@ int blobTracker::getColorId(ofxCvColorImage* ballImage) {
 //--------------------------------------------------------------
 void blobTracker::draw(){
     if (!configured) {
-        // if not configured, draw red screen
-        ofBackground(255, 0, 0);
+        // if not configured, draw blue screen
+        ofBackground(0, 0, 255);
     }
     else {
         // draw white screen when configured
