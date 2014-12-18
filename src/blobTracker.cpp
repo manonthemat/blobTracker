@@ -38,9 +38,7 @@ void blobTracker::setup(){
     sender.setup("localhost", 9999);
     receiver.setup(7600);
     sendConfigStatus(&sender, 0); // send OSC message to show auto-configure screen in unity3d
-    // ON-SITE: disabling autoconfigureclipping -> set manual values for now
     kinect.setDepthClipping(nearThreshold, farThreshold);
-    //configured = true;
     configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
 }
 
@@ -321,11 +319,15 @@ void blobTracker::draw(){
         configFinder.draw();
         contourFinder.draw(tmp.width, 0, 320, 240);
 
-        // draw area of interest
+        // draw markers
         ofCircle(dest[0].x, dest[0].y, 3);
+        ofDrawBitmapString("TL", dest[0].x, dest[0].y);
         ofCircle(dest[1].x, dest[1].y, 3);
+        ofDrawBitmapString("TR", dest[1].x, dest[1].y);
         ofCircle(dest[2].x, dest[2].y, 3);
+        ofDrawBitmapString("BR", dest[2].x, dest[2].y);
         ofCircle(dest[3].x, dest[3].y, 3);
+        ofDrawBitmapString("BL", dest[3].x, dest[3].y);
 
         stringstream reportStr;
         reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
