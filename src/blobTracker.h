@@ -6,6 +6,13 @@
 #include "ofxCv.h"
 #include "ofxOsc.h"
 #include "blobObject.h"
+#include "corners.h"
+
+struct DISTANCE_POINT {
+    float distance;
+    float x;
+    float y;
+};
 
 class blobTracker : public ofBaseApp{
 
@@ -35,6 +42,7 @@ class blobTracker : public ofBaseApp{
 
         blobObject balls[4];
         ofPoint dest[4];
+        CORNERS corners;
         ofPoint src[4];
         bool flip;
 
@@ -49,4 +57,5 @@ class blobTracker : public ofBaseApp{
         int getColorId(ofxCvColorImage* ballImage);
 
         void keyPressed(int key);
+        int get_smallest_distance_pos(const vector<DISTANCE_POINT> v);
 };

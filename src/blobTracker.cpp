@@ -56,56 +56,71 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     // on successful execution should return true (which should be assigned to the boolean variable "configured" in this example
     kinect->setDepthClipping(origNearClipping, origFarClipping);
     configImage.setFromPixels(kinect->getPixelsRef());
-    configImage.blur(11);
+    //configImage.blurGaussian();
+    //configImage.blur();
     //configFinder.setAutoThreshold(true);
     configFinder.setThreshold(128);
     configFinder.setMinArea(100000);
     configFinder.setUseTargetColor(true);
+    configFinder.setSimplify(true);
     configFinder.setTargetColor(ofColor(0, 0, 255));
-    configFinder.setSortBySize(true);
+    //configFinder.setSortBySize(true);
     configFinder.findContours(configImage);
     if (configFinder.size() != 0) {
-        vector<cv::Point> contours = configFinder.getContour(0);
-        //vector<cv::Point> contours = configFinder.getFitQuad(0);
-        ofPoint tl = ofPoint(600, 600); // I'd rather do it C++11 style than C++98 :(
-        ofPoint tr = ofPoint(0, 600);
-        ofPoint br = ofPoint(0, 0);
-        ofPoint bl = ofPoint(600, 0);
-        /*
-        ofPoint tl = ofPoint(contours[0].x, contours[0].y);
-        ofPoint tr = ofPoint(contours[0].x, contours[0].y);
-        ofPoint bl = ofPoint(contours[0].x, contours[0].y);
-        ofPoint br = ofPoint(contours[0].x, contours[0].y);
-        */
-        for(int i=0, n=contours.size(); i<n; ++i) {
-            if((contours[i].x <= tl.x) && (contours[i].y <= tl.y))
-                tl = ofPoint(contours[i].x, contours[i].y);
-            if((contours[i].x >= tr.x) && (contours[i].y <= tr.y))
-                tr = ofPoint(contours[i].x, contours[i].y);
-            if((contours[i].x >= br.x) && (contours[i].y >= br.y))
-                br = ofPoint(contours[i].x, contours[i].y);
-            if((contours[i].x <= bl.x) && (contours[i].y >= bl.y))
-                bl = ofPoint(contours[i].x, contours[i].y);
-        }
-        ofLog() << "tl " << tl << " tr " << tr << endl;
-        ofLog() << "bl " << bl << " br " << br << endl;
+        //vector<cv::Point> contours = configFinder.getContour(0);
+        vector<cv::Point> contours = configFinder.getConvexHull(0);
+        //vector<cv::Vec4i> defects = configFinder.getConvexityDefects(0);
         cv::Rect rect = configFinder.getBoundingRect(0);
-        ofLog() << rect.width * rect.height;
-        tl = ofPoint(rect.x, rect.y);
-        tr = ofPoint(rect.x + rect.width, rect.y);
-        br = ofPoint(rect.x + rect.width, rect.y + rect.height);
-        bl = ofPoint(rect.x, rect.y + rect.height);
+        ofPoint tl = ofPoint(rect.x, rect.y);
+        ofPoint tr = ofPoint(rect.x + rect.width, rect.y);
+        ofPoint br = ofPoint(rect.x + rect.width, rect.y + rect.height);
+        ofPoint bl = ofPoint(rect.x, rect.y + rect.height);
 
-        // use the rectangle to look for the first red color
-        // tl = start at (rect.x, rect.y) then go down...
-        // tr = start at (rect.x, rect.y) then go down
-        // bl = start at
         /*
-        dest[0] = ofPoint(rect.x, rect.y);
-        dest[1] = ofPoint(rect.x + rect.width, rect.y);
-        dest[2] = ofPoint(rect.x + rect.width, rect.y + rect.height);
-        dest[3] = ofPoint(rect.x, rect.y + rect.height);
+        for(int i=0, n=contours.size(); i<n; ++i) {
+            if (contours[i].x == rect.x) {
+                if (contours[i].y > (rect.y+rect.height) / 2) {
+                    bl = ofPoint(contours[i].x, contours[i].y);
+                } else {
+                    tl = ofPoint(contours[i].x, contours[i].y);
+                }
+            }
+            else if(contours[i].x == rect.x+rect.width) {
+                if (contours[i].y > (rect.y+rect.height) / 2) {
+                    br = ofPoint(contours[i].x, contours[i].y);
+                } else {
+                    bl = ofPoint(contours[i].x, contours[i].y);
+                }
+            }
+        }
         */
+        /*
+        cv::Point2f balance = configFinder.getBalance(0);
+        ofVec2f c = ofxCv::toOf(balance);
+        int n = contours.size();
+        vector<DISTANCE_POINT> distance;
+        distance.resize(4);
+        for(int i=0; i<n; ++i) {
+            ofVec2f p = ofxCv::toOf(contours[i]);
+            float d = p.distance(c);
+            int comparer = get_smallest_distance_pos(distance);
+            if(d > distance[comparer].distance) {
+                distance[comparer].distance = d;
+                distance[comparer].x = p.x;
+                distance[comparer].y = p.y;
+            }
+        }
+        reverse(distance.begin(), distance.end());
+        for(int i=0;i<4;++i) {
+            ofLog() << i << ". distance: " << distance[i].distance;
+            ofLog() << i << ". x: " << distance[i].x;
+            ofLog() << i << ". y: " << distance[i].y;
+        }
+        */
+        int n = contours.size();
+        for(int i=0; i<n; ++i)
+            ofLog() << contours[i].x << ", " << contours[i].y;
+        ofLog() << "contour points found: " << contours.size();
         dest[0] = tl;
         dest[1] = tr;
         dest[2] = br;
@@ -117,6 +132,15 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     } else {
         return false;
     }
+}
+//--------------------------------------------------------------
+int blobTracker::get_smallest_distance_pos(const vector<DISTANCE_POINT> v) {
+    // to tighly coupled, ugly and too many assumptions... hooray for these kind of development practises...
+    float smallest = v[0].distance;
+    int smallest_pos = 0;
+    for(int i=1, n=v.size(); i<n; ++i)
+        if(v[i].distance < smallest) smallest_pos = i;
+    return smallest_pos;
 }
 
 //--------------------------------------------------------------
@@ -189,7 +213,7 @@ void blobTracker::sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool
     m.addFloatArg(x);
     m.addFloatArg(y);
     m.addIntArg(id);
-    ofLog() << "sending hit message " << x << " " << y << " " << id;
+    //ofLog() << "sending hit message " << x << " " << y << " " << id;
     sender->sendMessage(m);
 }
 
@@ -223,7 +247,7 @@ void blobTracker::manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorI
                 balls[i].processed = true;
                 timer = ofGetUnixTime();
                 int c = getColorId(&outImage[i]);
-                ofLog() << "color id for ball " << i << " is " << c;
+                //ofLog() << "color id for ball " << i << " is " << c;
                 sendHitMessage(&sender, blob.centroid, c, flip);
                 outImage[i].set(0, 0, 0); // clear the outImage -> all black
             }
@@ -277,7 +301,7 @@ int blobTracker::getColorId(ofxCvColorImage* ballImage) {
         float hue = ofColor((int)r/numPixels, (int)g/numPixels, (int)b/numPixels).getHueAngle();
 
         hue = (int) hue;
-        ofLog() << "hue: " << hue;
+        //ofLog() << "hue: " << hue;
 
         if (hue >=250 || hue <=50)
             return 0;
@@ -376,6 +400,9 @@ void blobTracker::keyPressed(int key){
             break;
         case 'p':
             presetPoints();
+            break;
+        case 'c':
+            configured = false;
             break;
     }
 }
