@@ -70,61 +70,21 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
         //vector<cv::Point> contours = configFinder.getContour(0);
         vector<cv::Point> contours = configFinder.getConvexHull(0);
         //vector<cv::Vec4i> defects = configFinder.getConvexityDefects(0);
-        cv::Rect rect = configFinder.getBoundingRect(0);
-        ofPoint tl = ofPoint(rect.x, rect.y);
-        ofPoint tr = ofPoint(rect.x + rect.width, rect.y);
-        ofPoint br = ofPoint(rect.x + rect.width, rect.y + rect.height);
-        ofPoint bl = ofPoint(rect.x, rect.y + rect.height);
 
-        /*
-        for(int i=0, n=contours.size(); i<n; ++i) {
-            if (contours[i].x == rect.x) {
-                if (contours[i].y > (rect.y+rect.height) / 2) {
-                    bl = ofPoint(contours[i].x, contours[i].y);
-                } else {
-                    tl = ofPoint(contours[i].x, contours[i].y);
-                }
-            }
-            else if(contours[i].x == rect.x+rect.width) {
-                if (contours[i].y > (rect.y+rect.height) / 2) {
-                    br = ofPoint(contours[i].x, contours[i].y);
-                } else {
-                    bl = ofPoint(contours[i].x, contours[i].y);
-                }
-            }
-        }
-        */
-        /*
-        cv::Point2f balance = configFinder.getBalance(0);
-        ofVec2f c = ofxCv::toOf(balance);
         int n = contours.size();
-        vector<DISTANCE_POINT> distance;
-        distance.resize(4);
+        vector<ofPoint> points;
+        points.resize(n);
         for(int i=0; i<n; ++i) {
-            ofVec2f p = ofxCv::toOf(contours[i]);
-            float d = p.distance(c);
-            int comparer = get_smallest_distance_pos(distance);
-            if(d > distance[comparer].distance) {
-                distance[comparer].distance = d;
-                distance[comparer].x = p.x;
-                distance[comparer].y = p.y;
-            }
+            ofPoint pt;
+            pt.x = contours[i].x;
+            pt.y = contours[i].y;
+            points.push_back(pt);
         }
-        reverse(distance.begin(), distance.end());
-        for(int i=0;i<4;++i) {
-            ofLog() << i << ". distance: " << distance[i].distance;
-            ofLog() << i << ". x: " << distance[i].x;
-            ofLog() << i << ". y: " << distance[i].y;
-        }
-        */
-        int n = contours.size();
-        for(int i=0; i<n; ++i)
-            ofLog() << contours[i].x << ", " << contours[i].y;
-        ofLog() << "contour points found: " << contours.size();
-        dest[0] = tl;
-        dest[1] = tr;
-        dest[2] = br;
-        dest[3] = bl;
+        corners = get_corners(points);
+        dest[0] = corners.tl;
+        dest[1] = corners.tr;
+        dest[2] = corners.br;
+        dest[3] = corners.bl;
 
         sendConfigStatus(&sender, 1); // send OSC message to hide auto-configure screen in unity3d
         kinect->setDepthClipping(nearThreshold, farThreshold);

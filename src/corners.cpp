@@ -20,19 +20,19 @@ CORNERS get_corners(const std::vector<ofPoint> &v) {
         INTERCEPT intercept = calculate_intercepts(v[i]);
         if ((max_intercept.pos == init) || (max_intercept.pos < intercept.pos)) {
             max_intercept.pos = intercept.pos;
-            corners.tl = v[i];
+            corners.bl = v[i];
         }
         if ((min_intercept.pos == init) || (min_intercept.pos > intercept.pos)) {
             min_intercept.pos = intercept.pos;
-            corners.br = v[i];
+            corners.tr = v[i];
         }
         if ((max_intercept.neg == init) || (max_intercept.neg < intercept.neg)) {
             max_intercept.neg = intercept.neg;
-            corners.tr = v[i];
+            corners.br = v[i];
         }
         if ((min_intercept.neg == init) || (min_intercept.neg > intercept.neg)) {
             min_intercept.neg = intercept.neg;
-            corners.bl = v[i];
+            corners.tl = v[i];
         }
     }
     return corners;
