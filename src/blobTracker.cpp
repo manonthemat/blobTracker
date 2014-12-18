@@ -57,7 +57,7 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     kinect->setDepthClipping(origNearClipping, origFarClipping);
     configImage.setFromPixels(kinect->getPixelsRef());
     //configImage.blurGaussian();
-    //configImage.blur();
+    configImage.blur(5);
     //configFinder.setAutoThreshold(true);
     configFinder.setThreshold(128);
     configFinder.setMinArea(100000);
@@ -67,8 +67,8 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     //configFinder.setSortBySize(true);
     configFinder.findContours(configImage);
     if (configFinder.size() != 0) {
-        //vector<cv::Point> contours = configFinder.getContour(0);
-        vector<cv::Point> contours = configFinder.getConvexHull(0);
+        vector<cv::Point> contours = configFinder.getContour(0);
+        //vector<cv::Point> contours = configFinder.getConvexHull(0);
         //vector<cv::Vec4i> defects = configFinder.getConvexityDefects(0);
 
         int n = contours.size();

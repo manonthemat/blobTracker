@@ -9,10 +9,10 @@ INTERCEPT calculate_intercepts(const ofPoint &v) {
 
 CORNERS get_corners(const std::vector<ofPoint> &v) {
     CORNERS corners;
-    const int init = -1; // damn you Xcode... I want it C++11 style!
+    const double init = -1.0; // damn you Xcode... I want it C++11 style!
     INTERCEPT max_intercept;
     INTERCEPT min_intercept;
-    max_intercept.pos = init; // magic constant
+    max_intercept.pos = init; // use of magic constant
     max_intercept.neg = init;
     min_intercept.pos = init;
     min_intercept.neg = init;
@@ -31,8 +31,13 @@ CORNERS get_corners(const std::vector<ofPoint> &v) {
             corners.br = v[i];
         }
         if ((min_intercept.neg == init) || (min_intercept.neg > intercept.neg)) {
-            min_intercept.neg = intercept.neg;
-            corners.tl = v[i];
+            // yeah, you can't have the contour in the very origin of the viewport...
+            ofLog() << "looking to set TL";
+            if(!(v[i].x == 0 && v[i].y == 0)) {
+                min_intercept.neg = intercept.neg;
+                corners.tl = v[i];
+                ofLog() << "setting TL";
+            }
         }
     }
     return corners;
