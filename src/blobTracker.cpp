@@ -42,7 +42,6 @@ void blobTracker::setup(){
     sendConfigStatus(&sender, 0); // send OSC message to show auto-configure screen in unity3d
     kinect.setDepthClipping(nearThreshold, farThreshold);
     configured = autoConfigureViewport(&kinect);
-    //configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
 }
 
 //--------------------------------------------------------------
@@ -231,8 +230,6 @@ void blobTracker::update(){
             configured = autoConfigureViewport(&kinect);
             if(configured) ++sillyconfigure;
         }
-            //configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
-        //colorImage.setFromPixels(kinect.getPixels(), kinect.width, kinect.height);
         tmp.setFromPixels(kinect.getPixels(), kinect.width, kinect.height);
         colorImage.warpIntoMe(tmp, src, dest);
         depthImage.setFromPixels(kinect.getDepthPixels(), kinect.width, kinect.height);
