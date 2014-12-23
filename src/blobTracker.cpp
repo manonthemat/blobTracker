@@ -56,7 +56,6 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     // on successful execution should return true (which should be assigned to the boolean variable "configured" in this example
     kinect->setDepthClipping(origNearClipping, origFarClipping);
     configImage.setFromPixels(kinect->getPixelsRef());
-    //configImage.blurGaussian();
     configImage.blur(5);
     //configFinder.setAutoThreshold(true);
     configFinder.setThreshold(128);
@@ -64,12 +63,9 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     configFinder.setUseTargetColor(true);
     configFinder.setSimplify(true);
     configFinder.setTargetColor(ofColor(0, 0, 255));
-    //configFinder.setSortBySize(true);
     configFinder.findContours(configImage);
     if (configFinder.size() != 0) {
         vector<cv::Point> contours = configFinder.getContour(0);
-        //vector<cv::Point> contours = configFinder.getConvexHull(0);
-        //vector<cv::Vec4i> defects = configFinder.getConvexityDefects(0);
 
         int n = contours.size();
         vector<ofPoint> points;
@@ -93,16 +89,6 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
         return false;
     }
 }
-//--------------------------------------------------------------
-int blobTracker::get_smallest_distance_pos(const vector<DISTANCE_POINT> v) {
-    // to tighly coupled, ugly and too many assumptions... hooray for these kind of development practises...
-    float smallest = v[0].distance;
-    int smallest_pos = 0;
-    for(int i=1, n=v.size(); i<n; ++i)
-        if(v[i].distance < smallest) smallest_pos = i;
-    return smallest_pos;
-}
-
 //--------------------------------------------------------------
 bool blobTracker::autoConfigureClipping(ofxKinect* kinect) {
     bool success = false;
