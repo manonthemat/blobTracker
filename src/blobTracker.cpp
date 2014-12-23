@@ -10,8 +10,6 @@ void blobTracker::setup(){
     origNearClipping = kinect.getNearClipping();
     origFarClipping = kinect.getFarClipping();
     
-    sillyconfigure = 0;
-
     flip = true;
 
     nearThreshold = 1480;
@@ -226,10 +224,8 @@ void blobTracker::update(){
 
     // will only be executed if the connection to the kinect is established and there's a new frame
     if(kinect.isFrameNew()) {
-        if(!configured || sillyconfigure < 240) {
+        if(!configured)
             configured = autoConfigureViewport(&kinect);
-            if(configured) ++sillyconfigure;
-        }
         tmp.setFromPixels(kinect.getPixels(), kinect.width, kinect.height);
         colorImage.warpIntoMe(tmp, src, dest);
         depthImage.setFromPixels(kinect.getDepthPixels(), kinect.width, kinect.height);
