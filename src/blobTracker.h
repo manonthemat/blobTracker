@@ -21,6 +21,8 @@ class blobTracker : public ofBaseApp{
         void update();
         void draw();
         void exit();
+    
+        int sillyconfigure;
 
         ofxKinect kinect;
         int origNearClipping, origFarClipping;
