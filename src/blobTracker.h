@@ -42,7 +42,7 @@ class blobTracker : public ofBaseApp{
 
         blobObject balls[4];
         ofPoint dest[4];
-        CORNERS corners;
+        Corners corners;
         ofPoint src[4];
         bool flip;
 

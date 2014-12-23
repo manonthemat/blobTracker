@@ -80,7 +80,7 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
             pt.y = contours[i].y;
             points.push_back(pt);
         }
-        corners = get_corners(points);
+        get_corners(points, &corners);
         dest[0] = corners.tl;
         dest[1] = corners.tr;
         dest[2] = corners.br;
