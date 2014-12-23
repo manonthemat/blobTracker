@@ -226,7 +226,7 @@ void blobTracker::update(){
 
     // will only be executed if the connection to the kinect is established and there's a new frame
     if(kinect.isFrameNew()) {
-        if(!configured || sillyconfigure < 30) {
+        if(!configured || sillyconfigure < 240) {
             configured = autoConfigureViewport(&kinect);
             if(configured) ++sillyconfigure;
         }
