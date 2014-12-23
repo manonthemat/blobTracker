@@ -14,8 +14,8 @@ void blobTracker::setup(){
 
     flip = true;
 
-    nearThreshold = 1480;
-    farThreshold = 2220;
+    nearThreshold = 2100;
+    farThreshold = 2200;
 
     colorImage.allocate(kinect.width, kinect.height);
     tmp.allocate(kinect.width, kinect.height);
@@ -41,7 +41,12 @@ void blobTracker::setup(){
     receiver.setup(7600);
     sendConfigStatus(&sender, 0); // send OSC message to show auto-configure screen in unity3d
     kinect.setDepthClipping(nearThreshold, farThreshold);
+<<<<<<< HEAD
     configured = autoConfigureViewport(&kinect);
+    //configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
+=======
+    configured = autoConfigureViewport(&kinect); // && autoConfigureClipping(&kinect);
+>>>>>>> 5d24bfe6b72a3fb058f7d42d3b51f6e5ef172e2c
 }
 
 //--------------------------------------------------------------
@@ -226,10 +231,17 @@ void blobTracker::update(){
 
     // will only be executed if the connection to the kinect is established and there's a new frame
     if(kinect.isFrameNew()) {
+<<<<<<< HEAD
         if(!configured || sillyconfigure < 2) {
             configured = autoConfigureViewport(&kinect);
             if(configured) ++sillyconfigure;
         }
+            //configured = autoConfigureViewport(&kinect) && autoConfigureClipping(&kinect);
+=======
+        if(!configured)
+            configured = autoConfigureViewport(&kinect); // && autoConfigureClipping(&kinect);
+>>>>>>> 5d24bfe6b72a3fb058f7d42d3b51f6e5ef172e2c
+        //colorImage.setFromPixels(kinect.getPixels(), kinect.width, kinect.height);
         tmp.setFromPixels(kinect.getPixels(), kinect.width, kinect.height);
         colorImage.warpIntoMe(tmp, src, dest);
         depthImage.setFromPixels(kinect.getDepthPixels(), kinect.width, kinect.height);
