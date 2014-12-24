@@ -9,7 +9,7 @@ void get_corners(const std::vector<ofPoint> &v, Corners* corners) {
     Intercept max_intercept;
     Intercept min_intercept;
 
-    for(const auto& vertex : v) {
+    for(const ofPoint& vertex : v) {
         Intercept intercept;
         calculate_intercepts(vertex, &intercept);
         if (!max_intercept.has_pos || max_intercept.getPos() < intercept.getPos()) {
@@ -25,8 +25,10 @@ void get_corners(const std::vector<ofPoint> &v, Corners* corners) {
             corners->br = vertex;
         }
         if (!min_intercept.has_neg || min_intercept.getNeg() > intercept.getNeg()) {
-            min_intercept.setNeg(intercept.getNeg());
-            corners->tl = vertex;
+            if(!(vertex.x == 0 && vertex.y == 0)) {
+                min_intercept.setNeg(intercept.getNeg());
+                corners->tl = vertex;
+            }
         }
     }
 }
