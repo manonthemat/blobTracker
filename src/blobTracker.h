@@ -5,6 +5,7 @@
 #include "ofxOpenCv.h"
 #include "ofxCv.h"
 #include "ofxOsc.h"
+#include "ofxNetwork.h"
 #include "blobObject.h"
 #include "corners.h"
 
@@ -19,8 +20,11 @@ class blobTracker : public ofBaseApp{
 
         ofxKinect kinect;
         int origNearClipping, origFarClipping;
+
+        // Networking
         ofxOscSender sender;
         ofxOscReceiver receiver;
+        ofxTCPServer tcp_server;
 
         ofxCvColorImage colorImage, tmp;
         ofxCvColorImage ballImage[4];

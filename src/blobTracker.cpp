@@ -38,6 +38,10 @@ void blobTracker::setup(){
     sender.setup("localhost", 9999);
     receiver.setup(7600);
     sendConfigStatus(&sender, 0); // send OSC message to show auto-configure screen in unity3d
+    tcp_server.setup(8888);
+    tcp_server.setMessageDelimiter(";");
+
+    
     kinect.setDepthClipping(nearThreshold, farThreshold);
     configured = autoConfigureViewport(&kinect);
 }
@@ -221,6 +225,12 @@ void blobTracker::update(){
         contourFinder.findContours(depthImage, 1000, 2000, 4, false); // find contours
         manipulateBlobs(&contourFinder, &colorImage, &depthImage); // calling the work-horse
     }
+    
+    int id = tcp_server.getLastID();
+    if(id > 0) { // if there's at least one client connected
+        string received = tcp_server.receive(0); // in this case we're only interested in the first client
+        if(received != "") ofLog() << received;
+    }
 }
 
 //--------------------------------------------------------------
@@ -310,6 +320,7 @@ void blobTracker::draw(){
 //--------------------------------------------------------------
 void blobTracker::exit() {
     kinect.close();
+    tcp_server.close(); // disconnecting all clients and shutting down the TCP server
 }
 
 //--------------------------------------------------------------
