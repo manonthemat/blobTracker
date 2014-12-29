@@ -225,15 +225,20 @@ void blobTracker::update(){
         contourFinder.findContours(depthImage, 1000, 2000, 4, false); // find contours
         manipulateBlobs(&contourFinder, &colorImage, &depthImage); // calling the work-horse
     }
-    
-    int id = tcp_server.getLastID();
-    if(id > 0) { // if there's at least one client connected
-        string received = tcp_server.receive(0); // in this case we're only interested in the first client
-        if(received != "") ofLog() << received;
-        if(received == "drawCams") drawCams = true;
-        else if(received == "hideCams") drawCams = false;
-        else if(received == "screenshot") ofSaveScreen("screenshot.jpg");
-        else if(received == "unconfigure") configured = false;
+    getNetworkMessages(&tcp_server);
+}
+
+//--------------------------------------------------------------
+void blobTracker::getNetworkMessages(ofxTCPServer *server) {
+    for(int i=0; i<server->getLastID(); ++i) {
+        if(server->isClientConnected(i)) {
+            string received = server->receive(i); // in this case we're only interested in the first client
+            if(received != "") ofLog() << received;
+            if(received == "drawCams") drawCams = true;
+            else if(received == "hideCams") drawCams = false;
+            else if(received == "screenshot") ofSaveScreen("screenshot.jpg");
+            else if(received == "unconfigure") configured = false;    
+        }
     }
 }
 

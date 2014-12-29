@@ -54,6 +54,7 @@ class blobTracker : public ofBaseApp{
         void sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool flipped);
         void manipulateBlobs(ofxCvContourFinder* contourFinder, ofxCvColorImage* origImg, ofxCvGrayscaleImage* depthImg);
         int getColorId(ofxCvColorImage* ballImage);
+        void getNetworkMessages(ofxTCPServer* server);
 
         void keyPressed(int key);
 };
