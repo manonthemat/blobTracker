@@ -230,6 +230,9 @@ void blobTracker::update(){
     if(id > 0) { // if there's at least one client connected
         string received = tcp_server.receive(0); // in this case we're only interested in the first client
         if(received != "") ofLog() << received;
+        if(received == "drawCams") drawCams = true;
+        else if(received == "hideCams") drawCams = false;
+        else if(received == "screenshot") ofSaveScreen("screenshot.jpg");
     }
 }
 
