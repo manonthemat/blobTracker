@@ -233,6 +233,7 @@ void blobTracker::update(){
         if(received == "drawCams") drawCams = true;
         else if(received == "hideCams") drawCams = false;
         else if(received == "screenshot") ofSaveScreen("screenshot.jpg");
+        else if(received == "unconfigure") configured = false;
     }
 }
 
