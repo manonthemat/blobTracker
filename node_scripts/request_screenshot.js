@@ -1,6 +1,5 @@
 var env = process.env.NODE_ENV || 'development';
 var sendgrid_config = require(__dirname + '/config/sendgrid.js')[env];
-console.log(sendgrid_config);
 var sendgrid = require('sendgrid')(sendgrid_config.user, sendgrid_config.password);
 
 var net = require('net');
@@ -10,6 +9,8 @@ function mailPhoto(file) {
   var email = new sendgrid.Email();
   if(!process.argv[2]) {
     recipient = sendgrid_config.default_recipient;
+  } else {
+    recipient = process.argv[2];
   }
   email.addTo(recipient);
   email.setFrom(sendgrid_config.from);
@@ -21,7 +22,7 @@ function mailPhoto(file) {
   });
   sendgrid.send(email, function(err, json) {
     if (err) {
-      return console.err(err);
+      return console.error(err);
     }
     console.log(json);
   });
