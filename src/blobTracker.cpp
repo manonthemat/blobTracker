@@ -14,6 +14,8 @@ void blobTracker::setup(){
 
     nearThreshold = 1480;
     farThreshold = 2220;
+    cthresh = 128;
+    carea = 100000;
 
     colorImage.allocate(kinect.width, kinect.height);
     tmp.allocate(kinect.width, kinect.height);
@@ -62,8 +64,8 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
     configImage.setFromPixels(kinect->getPixelsRef());
     configImage.blur(5);
     //configFinder.setAutoThreshold(true);
-    configFinder.setThreshold(128);
-    configFinder.setMinArea(100000);
+    configFinder.setThreshold(cthresh);
+    configFinder.setMinArea(carea);
     configFinder.setUseTargetColor(true);
     configFinder.setSimplify(true);
     configFinder.setTargetColor(ofColor(0, 0, 255));
@@ -321,7 +323,9 @@ void blobTracker::draw(){
         reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
                   << "clipping distance for kinect depth: " << nearThreshold << "/" << farThreshold << endl
                   << "fps is: " << ofGetFrameRate() << endl
-                  << "flipped: " << flip << endl;
+                  << "flipped: " << flip << endl
+                  << "cthresh: " << cthresh << endl
+                  << "carea: " << carea << endl;
         ofDrawBitmapString(reportStr.str(), 0, 0);
     }
 }
@@ -368,6 +372,18 @@ void blobTracker::keyPressed(int key){
             break;
         case 'c':
             configured = false;
+            break;
+        case 't':
+            if (cthresh > 10) cthresh -= 10;
+            break;
+        case 'T':
+            if (cthresh < 245) cthresh += 10;
+            break;
+        case 'a':
+            if (carea > 100) carea -= 100;
+            break;
+        case 'A':
+            if (carea < 100000) carea += 100;
             break;
     }
 }

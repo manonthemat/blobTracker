@@ -36,6 +36,8 @@ class blobTracker : public ofBaseApp{
         ofxCvContourFinder contourFinder;
 
         int nearThreshold, farThreshold; // to be used for kinect's depth clipping
+        int cthresh;
+        int carea;
 
         bool drawCams, configured;
 
