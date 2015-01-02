@@ -83,10 +83,10 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
             points.push_back(pt);
         }
         Corners corners = Corners(points);
-        dest[0] = corners.tl;
-        dest[1] = corners.tr;
-        dest[2] = corners.br;
-        dest[3] = corners.bl;
+        dest[0] = corners.getTL();
+        dest[1] = corners.getTR();
+        dest[2] = corners.getBR();
+        dest[3] = corners.getBL();
 
         sendConfigStatus(&sender, 1); // send OSC message to hide auto-configure screen in unity3d
         kinect->setDepthClipping(nearThreshold, farThreshold);
