@@ -5,7 +5,18 @@ void calculate_intercepts(const ofPoint &v, Intercept* intercept) {
     intercept->setNeg(v.y + v.x);
 }
 
+Corners::Corners() {
+    this->setTL(ofPoint(0, 0));
+    this->setTR(ofPoint(640, 0));
+    this->setBL(ofPoint(0, 480));
+    this->setBR(ofPoint(640, 480));
+}
+
 Corners::Corners(const std::vector<ofPoint> &v) {
+    this->autoget_corners(v);
+}
+
+void Corners::autoget_corners(const std::vector<ofPoint> &v) {
     Intercept max_intercept;
     Intercept min_intercept;
 

@@ -31,8 +31,7 @@ void blobTracker::setup(){
     outImage[3].allocate(kinect.width, kinect.height);
 
     ofSetFrameRate(60);
-
-    //presetPoints();
+    Corners corners = Corners();
 
     timer = 0;
 
@@ -46,14 +45,6 @@ void blobTracker::setup(){
     
     kinect.setDepthClipping(nearThreshold, farThreshold);
     configured = autoConfigureViewport(&kinect);
-}
-
-//--------------------------------------------------------------
-void blobTracker::presetPoints() {
-    dest[0] = ofPoint(30, 85);
-    dest[1] = ofPoint(625, 75);
-    dest[2] = ofPoint(545, 420);
-    dest[3] = ofPoint(105, 422);
 }
 
 //--------------------------------------------------------------
@@ -82,7 +73,7 @@ bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
             pt.y = contours[i].y;
             points.push_back(pt);
         }
-        Corners corners = Corners(points);
+        corners.autoget_corners(points);
         dest[0] = corners.getTL();
         dest[1] = corners.getTR();
         dest[2] = corners.getBR();
@@ -150,11 +141,11 @@ void blobTracker::sendHitMessage(ofxOscSender* sender, ofPoint pos, int id, bool
     ofxOscMessage m;
     m.setAddress("/shoot");
     // if pos is out of dest bounds, return (and don't send a hit message)
-    if ((pos.x < dest[0].x) || (pos.x > dest[1].x) || (pos.y < dest[0].y) || (pos.y > dest[2].y)) {
+    if ((pos.x < corners.getTL().x) || (pos.x > corners.getTR().x) || (pos.y < corners.getTL().y) || (pos.y > corners.getBR().y)) {
         return;
     }
-    float x = (pos.x - dest[0].x) / (dest[1].x - dest[0].x);
-    float y = (pos.y - dest[0].y) / (dest[2].y - dest[0].y);
+    float x = (pos.x - corners.getTL().x) / (corners.getTR().x - corners.getTL().x);
+    float y = (pos.y - corners.getTL().y) / (corners.getBR().y - corners.getTL().y);
     if (flipped) {
         x = 1-x;
         y = 1-y;
@@ -310,14 +301,14 @@ void blobTracker::draw(){
         contourFinder.draw(tmp.width, 0, 320, 240);
 
         // draw markers
-        ofCircle(dest[0].x, dest[0].y, 3);
-        ofDrawBitmapString("TL", dest[0].x, dest[0].y);
-        ofCircle(dest[1].x, dest[1].y, 3);
-        ofDrawBitmapString("TR", dest[1].x, dest[1].y);
-        ofCircle(dest[2].x, dest[2].y, 3);
-        ofDrawBitmapString("BR", dest[2].x, dest[2].y);
-        ofCircle(dest[3].x, dest[3].y, 3);
-        ofDrawBitmapString("BL", dest[3].x, dest[3].y);
+        ofCircle(corners.getTL(), 3);
+        ofDrawBitmapString("TL", corners.getTL());
+        ofCircle(corners.getTR(), 3);
+        ofDrawBitmapString("TR", corners.getTR());
+        ofCircle(corners.getBR(), 3);
+        ofDrawBitmapString("BR", corners.getBR());
+        ofCircle(corners.getBL(), 3);
+        ofDrawBitmapString("BL", corners.getBL());
 
         stringstream reportStr;
         reportStr << "contourFinder has " << contourFinder.nBlobs << " blobs" << endl
@@ -366,9 +357,6 @@ void blobTracker::keyPressed(int key){
             break;
         case 'x':
             flip = !flip;
-            break;
-        case 'p':
-            presetPoints();
             break;
         case 'c':
             configured = false;

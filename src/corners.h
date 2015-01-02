@@ -6,7 +6,9 @@
 
 class Corners {
     public:
+        Corners();
         Corners(const std::vector<ofPoint> &v);
+        void autoget_corners(const std::vector<ofPoint> &v);
         ofPoint getTL() { return tl; };
         ofPoint getTR() { return tr; };
         ofPoint getBL() { return bl; };

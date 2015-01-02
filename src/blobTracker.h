@@ -42,13 +42,13 @@ class blobTracker : public ofBaseApp{
         bool drawCams, configured;
 
         blobObject balls[4];
+        Corners corners;
         ofPoint dest[4];
         ofPoint src[4];
         bool flip;
 
         unsigned int timer;
 
-        void presetPoints();
         void sendConfigStatus(ofxOscSender* sender, int config_completed);
         bool autoConfigureViewport(ofxKinect* kinect);
         bool autoConfigureClipping(ofxKinect* kinect);
