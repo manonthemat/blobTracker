@@ -9,6 +9,7 @@
 #include "blobObject.h"
 #include "corners.h"
 
+ofPoint getPointFromString(const string &s);
 
 class blobTracker : public ofBaseApp{
 

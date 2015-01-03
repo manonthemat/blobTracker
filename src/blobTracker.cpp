@@ -222,6 +222,15 @@ void blobTracker::update(){
 }
 
 //--------------------------------------------------------------
+ofPoint getPointFromString(const string &s) {
+    // s has this format: "setTL,100,300" to return a ofPoint(100,300);
+    vector<string> splitmessage = ofSplitString(s, ",");
+    int _x = ofToInt(splitmessage[1]);
+    int _y = ofToInt(splitmessage[2]);
+    return ofPoint(_x, _y);
+}
+
+//--------------------------------------------------------------
 void blobTracker::getNetworkMessages(ofxTCPServer *server) {
     for(int i=0; i<server->getLastID(); ++i) {
         if(server->isClientConnected(i)) {
@@ -236,6 +245,26 @@ void blobTracker::getNetworkMessages(ofxTCPServer *server) {
                 ofLog() << pointsstring;
                 server->send(i, pointsstring);
                 //server->disconnectClient(i);
+            }
+            else if(ofSplitString(received, ",")[0] == "setTL") {
+                ofPoint p = getPointFromString(received);
+                dest[0] = p;
+                corners.setTL(p);
+            }
+            else if(ofSplitString(received, ",")[0] == "setTR") {
+                ofPoint p = getPointFromString(received);
+                dest[1] = p;
+                corners.setTR(p);
+            }
+            else if(ofSplitString(received, ",")[0] == "setBL") {
+                ofPoint p = getPointFromString(received);
+                dest[3] = p;
+                corners.setBL(p);
+            }
+            else if(ofSplitString(received, ",")[0] == "setBR") {
+                ofPoint p = getPointFromString(received);
+                dest[2] = p;
+                corners.setBR(p);
             }
         }
     }
