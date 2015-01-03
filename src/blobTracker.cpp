@@ -230,7 +230,13 @@ void blobTracker::getNetworkMessages(ofxTCPServer *server) {
             if(received == "drawCams") drawCams = true;
             else if(received == "hideCams") drawCams = false;
             else if(received == "screenshot") ofSaveScreen("screenshot.jpg");
-            else if(received == "unconfigure") configured = false;    
+            else if(received == "unconfigure") configured = false;
+            else if(received == "getPoints") {
+                string pointsstring = "TL: " + ofToString(corners.getTL()) + " TR: " + ofToString(corners.getTR()) + " BR: " + ofToString(corners.getBR()) + " BL: " + ofToString(corners.getBL());
+                ofLog() << pointsstring;
+                server->send(i, pointsstring);
+                //server->disconnectClient(i);
+            }
         }
     }
 }
