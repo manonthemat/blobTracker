@@ -31,7 +31,7 @@ void blobTracker::setup(){
     outImage[3].allocate(kinect.width, kinect.height);
 
     ofSetFrameRate(60);
-    Corners corners = Corners();
+    corners = Corners();
 
     timer = 0;
 
@@ -42,8 +42,9 @@ void blobTracker::setup(){
     tcp_server.setup(8888);
     tcp_server.setMessageDelimiter(";");
 
-    
     kinect.setDepthClipping(nearThreshold, farThreshold);
+
+    // TODO: check if xml file is present, if it is, get corners from it and skip auto-config
     configured = autoConfigureViewport(&kinect);
 }
 
@@ -242,9 +243,7 @@ void blobTracker::getNetworkMessages(ofxTCPServer *server) {
             else if(received == "unconfigure") configured = false;
             else if(received == "getPoints") {
                 string pointsstring = "TL: " + ofToString(corners.getTL()) + " TR: " + ofToString(corners.getTR()) + " BR: " + ofToString(corners.getBR()) + " BL: " + ofToString(corners.getBL());
-                ofLog() << pointsstring;
                 server->send(i, pointsstring);
-                //server->disconnectClient(i);
             }
             else if(ofSplitString(received, ",")[0] == "setTL") {
                 ofPoint p = getPointFromString(received);
@@ -265,6 +264,9 @@ void blobTracker::getNetworkMessages(ofxTCPServer *server) {
                 ofPoint p = getPointFromString(received);
                 dest[2] = p;
                 corners.setBR(p);
+            }
+            else if(ofSplitString(received, ",")[0] == "setArea") {
+                carea = ofToInt(ofSplitString(received, ",")[1]);
             }
         }
     }
