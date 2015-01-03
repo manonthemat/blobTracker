@@ -268,6 +268,9 @@ void blobTracker::getNetworkMessages(ofxTCPServer *server) {
             else if(ofSplitString(received, ",")[0] == "setArea") {
                 carea = ofToInt(ofSplitString(received, ",")[1]);
             }
+            else if(ofSplitString(received, ",")[0] == "setCt") {
+                cthresh = ofToInt(ofSplitString(received, ",")[1]);
+            }
         }
     }
 }
