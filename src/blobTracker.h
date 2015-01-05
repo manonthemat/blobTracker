@@ -22,6 +22,8 @@ class blobTracker : public ofBaseApp{
         ofxKinect kinect;
         int origNearClipping, origFarClipping;
 
+        string configfile;
+
         // Networking
         ofxOscSender sender;
         ofxOscReceiver receiver;
@@ -49,7 +51,8 @@ class blobTracker : public ofBaseApp{
         bool flip;
 
         unsigned int timer;
-
+        bool loadConfig();
+        bool saveConfig();
         void sendConfigStatus(ofxOscSender* sender, int config_completed);
         bool autoConfigureViewport(ofxKinect* kinect);
         bool autoConfigureClipping(ofxKinect* kinect);

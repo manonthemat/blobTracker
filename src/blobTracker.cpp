@@ -33,6 +33,8 @@ void blobTracker::setup(){
     ofSetFrameRate(60);
     corners = Corners();
 
+    configfile = "viewport.dat";
+
     timer = 0;
 
     // setting up the networking
@@ -232,6 +234,26 @@ ofPoint getPointFromString(const string &s) {
 }
 
 //--------------------------------------------------------------
+bool blobTracker::saveConfig() {
+    ofLog() << "saving config";
+    string configstring;
+    configstring = ofToString(corners.getTL().x) + "," + ofToString(corners.getTL().y) + '\n'
+        + ofToString(corners.getTR().x) + "," + ofToString(corners.getTR().y) + '\n'
+        + ofToString(corners.getBR().x) + "," + ofToString(corners.getBR().y) + '\n'
+        + ofToString(corners.getBL().x) + "," + ofToString(corners.getBL().y) + '\n';
+    ofBuffer buf(configstring);
+    if(!ofBufferToFile(ofToDataPath(configfile), buf)) {
+        ofLog() << "error opening file " << configfile << " for writing";
+        return false;
+    }
+    return true;
+}
+
+//--------------------------------------------------------------
+bool blobTracker::loadConfig() {
+}
+
+//--------------------------------------------------------------
 void blobTracker::getNetworkMessages(ofxTCPServer *server) {
     for(int i=0; i<server->getLastID(); ++i) {
         if(server->isClientConnected(i)) {
@@ -241,6 +263,7 @@ void blobTracker::getNetworkMessages(ofxTCPServer *server) {
             else if(received == "hideCams") drawCams = false;
             else if(received == "screenshot") ofSaveScreen("screenshot.jpg");
             else if(received == "unconfigure") configured = false;
+            else if(received == "saveConfig") saveConfig();
             else if(received == "getPoints") {
                 string pointsstring = "TL: " + ofToString(corners.getTL()) + " TR: " + ofToString(corners.getTR()) + " BR: " + ofToString(corners.getBR()) + " BL: " + ofToString(corners.getBL());
                 server->send(i, pointsstring);
