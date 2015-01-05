@@ -53,6 +53,7 @@ class blobTracker : public ofBaseApp{
         unsigned int timer;
         bool loadConfig();
         bool saveConfig();
+        bool deleteConfig();
         void sendConfigStatus(ofxOscSender* sender, int config_completed);
         bool autoConfigureViewport(ofxKinect* kinect);
         bool autoConfigureClipping(ofxKinect* kinect);

@@ -46,12 +46,14 @@ void blobTracker::setup(){
 
     kinect.setDepthClipping(nearThreshold, farThreshold);
 
-    // TODO: check if xml file is present, if it is, get corners from it and skip auto-config
-    configured = autoConfigureViewport(&kinect);
+    bool configfromfile = loadConfig();
+    if(!configfromfile) configured = autoConfigureViewport(&kinect);
+    else configured = true;
 }
 
 //--------------------------------------------------------------
 bool blobTracker::autoConfigureViewport(ofxKinect* kinect) {
+    ofLog() << "trying to autoconfigure viewports";
     // setting the dest(ination) points through this function
     // on successful execution should return true (which should be assigned to the boolean variable "configured" in this example
     kinect->setDepthClipping(origNearClipping, origFarClipping);
@@ -237,10 +239,10 @@ ofPoint getPointFromString(const string &s) {
 bool blobTracker::saveConfig() {
     ofLog() << "saving config";
     string configstring;
-    configstring = ofToString(corners.getTL().x) + "," + ofToString(corners.getTL().y) + '\n'
-        + ofToString(corners.getTR().x) + "," + ofToString(corners.getTR().y) + '\n'
-        + ofToString(corners.getBR().x) + "," + ofToString(corners.getBR().y) + '\n'
-        + ofToString(corners.getBL().x) + "," + ofToString(corners.getBL().y) + '\n';
+    configstring = ofToString(corners.getTL().x) + "," + ofToString(corners.getTL().y) + 'A'
+        + ofToString(corners.getTR().x) + "," + ofToString(corners.getTR().y) + 'B'
+        + ofToString(corners.getBR().x) + "," + ofToString(corners.getBR().y) + 'C'
+        + ofToString(corners.getBL().x) + "," + ofToString(corners.getBL().y) + 'D';
     ofBuffer buf(configstring);
     if(!ofBufferToFile(ofToDataPath(configfile), buf)) {
         ofLog() << "error opening file " << configfile << " for writing";
@@ -251,6 +253,45 @@ bool blobTracker::saveConfig() {
 
 //--------------------------------------------------------------
 bool blobTracker::loadConfig() {
+    ofLog() << "trying to load configfile";
+    ofFile file;
+    if(!file.open(ofToDataPath(configfile), ofFile::ReadOnly, false)) {
+        ofLog() << "can not open configfile";
+        return false;
+    } else {
+        if(!file.is_open()) return false;
+    }
+    ofBuffer buff = file.readToBuffer();
+    string config = buff.getText();
+    int a = config.find('A');
+    int b = config.find('B');
+    int c = config.find('C');
+    int d = config.find('D');
+    string tl_string = config.substr(0, a);
+    string tr_string = config.substr(a+1, b-a-1);
+    string br_string = config.substr(b+1, c-b-1);
+    string bl_string = config.substr(c+1, d-c-1);
+    int tlc = tl_string.find(','); int trc = tr_string.find(','); int brc = br_string.find(','); int blc = bl_string.find(',');
+    ofPoint tl = ofPoint(ofToInt(tl_string.substr(0, tlc)), ofToInt(tl_string.substr(tlc+1)));
+    dest[0] = tl;
+    corners.setTL(tl);
+    ofPoint tr = ofPoint(ofToInt(tr_string.substr(0, trc)), ofToInt(tr_string.substr(trc+1)));
+    dest[1] = tr;
+    corners.setTR(tr);
+    ofPoint br = ofPoint(ofToInt(br_string.substr(0, brc)), ofToInt(br_string.substr(brc+1)));
+    dest[2] = br;
+    corners.setBR(br);
+    ofPoint bl = ofPoint(ofToInt(bl_string.substr(0, blc)), ofToInt(bl_string.substr(blc+1)));
+    dest[3] = bl;
+    corners.setBL(bl);
+    return true;
+}
+
+//--------------------------------------------------------------
+bool blobTracker::deleteConfig() {
+    ofFile file;
+    ofLog() << "removing configfile";
+    file.removeFile(ofToDataPath(configfile));
 }
 
 //--------------------------------------------------------------
@@ -264,6 +305,7 @@ void blobTracker::getNetworkMessages(ofxTCPServer *server) {
             else if(received == "screenshot") ofSaveScreen("screenshot.jpg");
             else if(received == "unconfigure") configured = false;
             else if(received == "saveConfig") saveConfig();
+            else if(received == "deleteConfig") deleteConfig();
             else if(received == "getPoints") {
                 string pointsstring = "TL: " + ofToString(corners.getTL()) + " TR: " + ofToString(corners.getTR()) + " BR: " + ofToString(corners.getBR()) + " BL: " + ofToString(corners.getBL());
                 server->send(i, pointsstring);
